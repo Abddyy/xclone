@@ -13,7 +13,7 @@ public class connection {
             e.printStackTrace();
         }
 
-        String url = "jdbc:postgresql://localhost/BookStore";
+        String url = "jdbc:postgresql://localhost/xclone";
         String user = "postgres";
         String password = "2003";
 

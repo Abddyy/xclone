@@ -1,18 +1,18 @@
 package org.xclone;
-
 import io.javalin.Javalin;
 import io.javalin.rendering.template.JavalinPebble;
 import io.javalin.rendering.JavalinRenderer;
 
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Random;
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class HelloWorld {
-
-    private static final int RANDOM_STRING_LENGTH = 10;
 
     public static void main(String[] args) {
         JavalinRenderer.register(new JavalinPebble(), ".peb", ".pebble");
@@ -21,33 +21,31 @@ public class HelloWorld {
                     config.fileRenderer(new JavalinPebble());
                 })
                 .get("/", ctx -> ctx.render("templates/templateFile.peb"))
-                .get("/add-random-title", ctx -> {
-                    String generatedString = generateRandomString(RANDOM_STRING_LENGTH);
-                    String sql = "INSERT into \"DemoSchema\".\"Post\" (title)\n values (?)";
+                .get("/tweets", ctx -> {
+
+                    String sql = "SELECT * FROM \"xcloneSchema\".\"tweet\"";
 
                     try (Connection conn = connection.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-                        pstmt.setString(1, generatedString);
+                        ResultSet rs = pstmt.executeQuery();
+                        List<String> tweets = new ArrayList<>();
 
 
-                        pstmt.executeUpdate();
+                        while (rs.next()) {
+                            // Assuming you have columns like 'id', 'content' in your 'tweet' table
+                            int id = rs.getInt("tweet_id"); // Or the appropriate column label
+                            String content = rs.getString("content"); // Or the appropriate column label
+                            //System.out.println("Tweet ID: " + id + ", Content: " + content);
+                            tweets.add(content);
+
+                        }
+                        ctx.render("templates/tweet_list.peb", model("tweets", tweets));
+
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
-
-                }).start(8000);
-    }
-
-    private static String generateRandomString(int length) {
-        // Use alphanumeric characters for generating the string
-        int leftLimit = 48;
-        int rightLimit = 122;
-        Random random = new Random();
-        return random.ints(leftLimit, rightLimit + 1)
-                .filter(i -> (i <= 57 || i >= 65) && (i <= 90 || i >= 97))
-                .limit(length)
-                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
+                })
+                .start(8000);
     }
 }
