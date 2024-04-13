@@ -1,8 +1,12 @@
 package org.xclone;
 
+
+
 import io.javalin.Javalin;
 import io.javalin.rendering.JavalinRenderer;
 import io.javalin.rendering.template.JavalinPebble;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,7 +14,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class HelloWorld {
@@ -20,6 +23,7 @@ public class HelloWorld {
 
         Javalin app = Javalin.create(config -> {
                     config.fileRenderer(new JavalinPebble());
+                    config.staticFiles.add("/static");
                 })
                 .get("/", ctx -> {
                     ctx.render("templates/main.peb");
@@ -35,7 +39,7 @@ public class HelloWorld {
                         try (ResultSet rs = pstmt.executeQuery()) {
                             if (rs.next()) {
                                 String dbPassword = rs.getString("password");
-                                if (Objects.equals(password, dbPassword)) {
+                                if (BCrypt.checkpw(password, dbPassword)) {
                                     ctx.sessionAttribute("user", email);
                                     ctx.redirect("/homepage");
                                 } else {
@@ -57,6 +61,7 @@ public class HelloWorld {
                     String email = ctx.formParam("email");
                     String password = ctx.formParam("password");
                     String username = ctx.formParam("username");
+                    String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
                     String sql = "SELECT * FROM \"xcloneSchema\".\"user\" WHERE email = ?";
                     try (Connection conn = connection.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -68,7 +73,7 @@ public class HelloWorld {
                             String insertSql = "INSERT INTO \"xcloneSchema\".\"user\" (email, password, username) VALUES (?, ?, ?)";
                             try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
                                 insertStmt.setString(1, email);
-                                insertStmt.setString(2, password);
+                                insertStmt.setString(2, hashedPassword);
                                 insertStmt.setString(3, username);
                                 insertStmt.executeUpdate();
                                 ctx.sessionAttribute("user", email);
@@ -105,12 +110,11 @@ public class HelloWorld {
                         ctx.render("templates/homepage.peb", model("errorMessage", "Failed to load tweets."));
                     }
                 })
-
                 .start(8000);
     }
 }
 
- class Tweet {
+class Tweet {
     String tweetId, userId, content, location, media, replyToTweetId, formattedTimestamp;
     java.sql.Timestamp timestamp;
 
