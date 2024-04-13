@@ -53,7 +53,9 @@ public class HelloWorld {
                     String password = ctx.formParam("password");
                     String user_name=null;
                     String sql="SELECT * From \"xcloneSchema\".\"user\" where email = ?";
-                    boolean do_login=false;
+                    int flag_pass=0;
+                    int flag_dne =0;
+                    int done=0;
 
                     try (Connection conn = connection.getConnection(); // Assume this method returns a valid connection
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -62,34 +64,77 @@ public class HelloWorld {
 
                         try (ResultSet rs = pstmt.executeQuery()) {
                             while (rs.next()) {
-                                // Assuming you're fetching a string from the first column of the result set
                                 String res_email = rs.getString("email");
                                 user_name=rs.getString("username");
                                 String res_password=rs.getString("password");
 
                                 if(Objects.equals(password, res_password)){
-                                    do_login=true;
+                                    flag_pass=1;
                                 }
+                                flag_dne=1;
                             }
-
-
+                            if(flag_dne!=1){
+                                ctx.render("templates/login_failed.peb");
+                                done=1;
+                            }
                         }
                     } catch (SQLException e) {
                         System.err.println("SQL Exception: " + e.getMessage());
                     }
-                    if(do_login){
-                  //      System.out.println("inside");
+                    if(flag_pass==1){
                         ctx.sessionAttribute("user", email);
                         ctx.redirect("/homepage");
                     }
-
-
+                    else if (flag_pass!=1&&done!=1) {
+                        ctx.render("templates/wrong_password.peb");
+                    }
                 })
                 .get("/homepage",ctx->{
 
                    String email= ctx.sessionAttribute("user");
                     ctx.render("templates/homepage.peb",model("email",email));
 
+                })
+                .get("/signup", ctx -> {
+                    ctx.render("templates/signup.peb");  // Make sure this template exists
+                })
+                .post("/signup", ctx -> {
+                    String email = ctx.formParam("email");
+                    String password = ctx.formParam("password");
+                    String user_name = ctx.formParam("username");
+                    int flag_exist = 0;
+                    String sql = "SELECT * FROM \"xcloneSchema\".\"user\" WHERE email = ?";
+
+                    String ins = "INSERT INTO \"xcloneSchema\".\"user\"" +
+                            "(email, password, username) VALUES (?, ?, ?)";
+
+                    try (Connection conn = connection.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+                        pstmt.setString(1, email);
+                        try (ResultSet rs = pstmt.executeQuery()) {
+                            if (rs.next()) {
+                                flag_exist = 1;
+                                System.out.println("The email already exists");
+                            }
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("SQL Exception: " + e.getMessage());
+                    }
+
+                    try (Connection conn = connection.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(ins)) {
+
+                        if (flag_exist == 0) {
+                            pstmt.setString(1, email);
+                            pstmt.setString(2, password);
+                            pstmt.setString(3, user_name);
+                            pstmt.executeUpdate();
+                            System.out.println("Signed up successfully");
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("SQL Exception: " + e.getMessage());
+                    }
                 })
                 .start(8000);
     }
