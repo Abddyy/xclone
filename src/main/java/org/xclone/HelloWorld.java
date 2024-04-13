@@ -1,16 +1,16 @@
 package org.xclone;
-import io.javalin.Javalin;
-import io.javalin.rendering.template.JavalinPebble;
-import io.javalin.rendering.JavalinRenderer;
 
+import io.javalin.Javalin;
+import io.javalin.rendering.JavalinRenderer;
+import io.javalin.rendering.template.JavalinPebble;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class HelloWorld {
@@ -20,122 +20,119 @@ public class HelloWorld {
 
         Javalin app = Javalin.create(config -> {
                     config.fileRenderer(new JavalinPebble());
-                  })
-                .get("/tweets", ctx -> {
-
-                    String sql = "SELECT * FROM \"xcloneSchema\".\"tweet\"";
-
-                    try (Connection conn = connection.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-                        ResultSet rs = pstmt.executeQuery();
-                        List<String> tweets = new ArrayList<>();
-
-
-                        while (rs.next()) {
-                            // Assuming you have columns like 'id', 'content' in your 'tweet' table
-                            int id = rs.getInt("tweet_id"); // Or the appropriate column label
-                            String content = rs.getString("content"); // Or the appropriate column label
-                            //System.out.println("Tweet ID: " + id + ", Content: " + content);
-                            tweets.add(content);
-
-                        }
-                        ctx.render("templates/tweet_list.peb", model("tweets", tweets));
-
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
                 })
-                .get("/", ctx -> ctx.render("templates/login.peb"))
-                .post("/login",ctx->{
-                    // get username and password from form
+                .get("/", ctx -> {
+                    ctx.render("templates/main.peb");
+                })
+                .get("/login", ctx -> ctx.render("templates/login.peb"))
+                .post("/login", ctx -> {
                     String email = ctx.formParam("email");
                     String password = ctx.formParam("password");
-                    String user_name=null;
-                    String sql="SELECT * From \"xcloneSchema\".\"user\" where email = ?";
-                    int flag_pass=0;
-                    int flag_dne =0;
-                    int done=0;
-
-                    try (Connection conn = connection.getConnection(); // Assume this method returns a valid connection
+                    String sql = "SELECT * FROM \"xcloneSchema\".\"user\" WHERE email = ?";
+                    try (Connection conn = connection.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
                         pstmt.setString(1, email);
-
                         try (ResultSet rs = pstmt.executeQuery()) {
-                            while (rs.next()) {
-                                String res_email = rs.getString("email");
-                                user_name=rs.getString("username");
-                                String res_password=rs.getString("password");
-
-                                if(Objects.equals(password, res_password)){
-                                    flag_pass=1;
+                            if (rs.next()) {
+                                String dbPassword = rs.getString("password");
+                                if (Objects.equals(password, dbPassword)) {
+                                    ctx.sessionAttribute("user", email);
+                                    ctx.redirect("/homepage");
+                                } else {
+                                    ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
                                 }
-                                flag_dne=1;
-                            }
-                            if(flag_dne!=1){
-                                ctx.render("templates/login_failed.peb");
-                                done=1;
+                            } else {
+                                ctx.render("templates/login.peb", model("errorMessage", "No user found with that email."));
                             }
                         }
                     } catch (SQLException e) {
-                        System.err.println("SQL Exception: " + e.getMessage());
+                        e.printStackTrace();
+                        ctx.render("templates/login.peb", model("errorMessage", "An error occurred. Please try again later."));
                     }
-                    if(flag_pass==1){
-                        ctx.sessionAttribute("user", email);
-                        ctx.redirect("/homepage");
-                    }
-                    else if (flag_pass!=1&&done!=1) {
-                        ctx.render("templates/wrong_password.peb");
-                    }
-                })
-                .get("/homepage",ctx->{
-
-                   String email= ctx.sessionAttribute("user");
-                    ctx.render("templates/homepage.peb",model("email",email));
-
                 })
                 .get("/signup", ctx -> {
-                    ctx.render("templates/signup.peb");  // Make sure this template exists
+                    ctx.render("templates/signup.peb");
                 })
                 .post("/signup", ctx -> {
                     String email = ctx.formParam("email");
                     String password = ctx.formParam("password");
-                    String user_name = ctx.formParam("username");
-                    int flag_exist = 0;
+                    String username = ctx.formParam("username");
                     String sql = "SELECT * FROM \"xcloneSchema\".\"user\" WHERE email = ?";
-
-                    String ins = "INSERT INTO \"xcloneSchema\".\"user\"" +
-                            "(email, password, username) VALUES (?, ?, ?)";
-
                     try (Connection conn = connection.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
                         pstmt.setString(1, email);
-                        try (ResultSet rs = pstmt.executeQuery()) {
-                            if (rs.next()) {
-                                flag_exist = 1;
-                                System.out.println("The email already exists");
+                        ResultSet rs = pstmt.executeQuery();
+                        if (rs.next()) {
+                            ctx.render("templates/signup.peb", model("errorMessage", "Email already exists. Please use a different email."));
+                        } else {
+                            String insertSql = "INSERT INTO \"xcloneSchema\".\"user\" (email, password, username) VALUES (?, ?, ?)";
+                            try (PreparedStatement insertStmt = conn.prepareStatement(insertSql)) {
+                                insertStmt.setString(1, email);
+                                insertStmt.setString(2, password);
+                                insertStmt.setString(3, username);
+                                insertStmt.executeUpdate();
+                                ctx.sessionAttribute("user", email);
+                                ctx.redirect("/homepage");
                             }
                         }
                     } catch (SQLException e) {
-                        System.err.println("SQL Exception: " + e.getMessage());
-                    }
-
-                    try (Connection conn = connection.getConnection();
-                         PreparedStatement pstmt = conn.prepareStatement(ins)) {
-
-                        if (flag_exist == 0) {
-                            pstmt.setString(1, email);
-                            pstmt.setString(2, password);
-                            pstmt.setString(3, user_name);
-                            pstmt.executeUpdate();
-                            System.out.println("Signed up successfully");
-                        }
-                    } catch (SQLException e) {
-                        System.err.println("SQL Exception: " + e.getMessage());
+                        e.printStackTrace();
+                        ctx.render("templates/signup.peb", model("errorMessage", "An error occurred during signup. Please try again."));
                     }
                 })
+                .get("/homepage", ctx -> {
+                    String sql = "SELECT tweet_id, user_id, content, timestamp, location, media, in_reply_to_tweet_id FROM \"xcloneSchema\".\"tweet\" ORDER BY timestamp DESC";
+
+                    try (Connection conn = connection.getConnection();
+                         PreparedStatement pstmt = conn.prepareStatement(sql);
+                         ResultSet rs = pstmt.executeQuery()) {
+                        List<Tweet> tweets = new ArrayList<>();
+
+                        while (rs.next()) {
+                            tweets.add(new Tweet(
+                                    rs.getString("tweet_id"),
+                                    rs.getString("user_id"),
+                                    rs.getString("content"),
+                                    rs.getTimestamp("timestamp"),
+                                    rs.getString("location"),
+                                    rs.getString("media"),
+                                    rs.getString("in_reply_to_tweet_id")
+                            ));
+                        }
+                        ctx.render("templates/homepage.peb", model("tweets", tweets));
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        ctx.render("templates/homepage.peb", model("errorMessage", "Failed to load tweets."));
+                    }
+                })
+
                 .start(8000);
     }
+}
+
+ class Tweet {
+    String tweetId, userId, content, location, media, replyToTweetId, formattedTimestamp;
+    java.sql.Timestamp timestamp;
+
+    public Tweet(String tweetId, String userId, String content, java.sql.Timestamp timestamp, String location, String media, String replyToTweetId) {
+        this.tweetId = tweetId;
+        this.userId = userId;
+        this.content = content;
+        this.timestamp = timestamp;
+        this.location = location;
+        this.media = media;
+        this.replyToTweetId = replyToTweetId;
+        // Format the timestamp here
+        this.formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(timestamp);
+    }
+
+    // Getters
+    public String getTweetId() { return tweetId; }
+    public String getUserId() { return userId; }
+    public String getContent() { return content; }
+    public java.sql.Timestamp getTimestamp() { return timestamp; }
+    public String getLocation() { return location; }
+    public String getMedia() { return media; }
+    public String getReplyToTweetId() { return replyToTweetId; }
+    public String getFormattedTimestamp() { return formattedTimestamp; }
 }
