@@ -233,8 +233,10 @@ public class HelloWorld {
                         ctx.render("templates/homepage.peb", model("errorMessage", "Failed to toggle like. Error: " + e.getMessage()));
                     }
                 })
-
-
+                .get("logout", ctx -> {
+                    ctx.sessionAttribute("email", null);
+                    ctx.redirect("/");
+                })
                 .start(8000);
     }
 }
