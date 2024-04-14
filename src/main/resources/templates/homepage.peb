@@ -78,7 +78,15 @@ XClone Timeline
     <a href="#lists">Lists</a>
     <a href="#profile">Profile</a>
     <a href="#more">More</a>
-    <button class="btn btn-primary btn-post">Post</button>
+
+    <!-- Form for posting new tweets -->
+    <form action="/post" method="post" style="padding: 10px;">
+        <textarea name="content" placeholder="What's happening?" required style="width: 90%;"></textarea>
+        <input type="text" name="location" placeholder="Location (optional)" style="width: 90%;">
+        <input type="text" name="media" placeholder="Media URL (optional)" style="width: 90%;">
+        <input type="text" name="replyToTweetId" placeholder="Replying to (Tweet ID, optional)" style="width: 90%;">
+        <button type="submit" class="btn btn-primary btn-post">Post</button>
+    </form>
 </div>
 
 <div class="container content">

@@ -12,9 +12,6 @@
 - [ ] See Specific User's profile and his tweets
 - [ ] Retweet(referencing)
 
-
-
-
 # Bonus points for
 - [x] Responsive Design (we are using boostrap 5)
 - [ ] Lazy loading

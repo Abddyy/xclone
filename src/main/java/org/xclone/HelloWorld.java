@@ -3,10 +3,8 @@ import io.javalin.Javalin;
 import io.javalin.rendering.JavalinRenderer;
 import io.javalin.rendering.template.JavalinPebble;
 import org.mindrot.jbcrypt.BCrypt;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,28 +26,30 @@ public class HelloWorld {
                 .post("/login", ctx -> {
                     String email = ctx.formParam("email");
                     String password = ctx.formParam("password");
-                    String sql = "SELECT * FROM \"xcloneSchema\".\"user\" WHERE email = ?";
+                    String sql = "SELECT user_id, password FROM \"xcloneSchema\".\"user\" WHERE email = ?";
+
                     try (Connection conn = connection.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql)) {
                         pstmt.setString(1, email);
-                        try (ResultSet rs = pstmt.executeQuery()) {
-                            if (rs.next()) {
-                                String dbPassword = rs.getString("password");
-                                if (BCrypt.checkpw(password, dbPassword)) {
-                                    ctx.sessionAttribute("user", email);
-                                    ctx.redirect("/homepage");
-                                } else {
-                                    ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
-                                }
+                        ResultSet rs = pstmt.executeQuery();
+
+                        if (rs.next()) {
+                            String dbPassword = rs.getString("password");
+                            if (BCrypt.checkpw(password, dbPassword)) {
+                                ctx.sessionAttribute("email", email); // Store email in session
+                                ctx.redirect("/homepage");
                             } else {
-                                ctx.render("templates/login.peb", model("errorMessage", "No user found with that email."));
+                                ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
                             }
+                        } else {
+                            ctx.render("templates/login.peb", model("errorMessage", "No user found with that email."));
                         }
                     } catch (SQLException e) {
                         e.printStackTrace();
                         ctx.render("templates/login.peb", model("errorMessage", "An error occurred. Please try again later."));
                     }
                 })
+
                 .get("/signup", ctx -> {
                     ctx.render("templates/signup.peb");
                 })
@@ -106,6 +106,64 @@ public class HelloWorld {
                         ctx.render("templates/homepage.peb", model("errorMessage", "Failed to load tweets."));
                     }
                 })
+                .post("/post", ctx -> {
+                    String email = ctx.sessionAttribute("email");
+                    if (email == null) {
+                        ctx.render("templates/homepage.peb", model("errorMessage", "You must be logged in to post tweets."));
+                        return;
+                    }
+
+                    String content = ctx.formParam("content");
+                    String location = ctx.formParam("location");
+                    String media = ctx.formParam("media");
+                    String replyToTweetIdString = ctx.formParam("replyToTweetId"); // Treat as null if not provided
+
+                    java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
+
+                    Integer replyToTweetId = null; // Default to null if not provided
+                    if (replyToTweetIdString != null && !replyToTweetIdString.isEmpty() && replyToTweetIdString.matches("\\d+")) {
+                        replyToTweetId = Integer.parseInt(replyToTweetIdString);
+                    }
+
+                    String sqlUserId = "SELECT user_id FROM \"xcloneSchema\".\"user\" WHERE email = ?";
+                    String sqlInsertTweet = "INSERT INTO \"xcloneSchema\".\"tweet\" (user_id, content, \"timestamp\", location, media, in_reply_to_tweet_id) VALUES (?, ?, ?, ?, ?, ?)";
+
+                    try (Connection conn = connection.getConnection();
+                         PreparedStatement pstmtUserId = conn.prepareStatement(sqlUserId)) {
+                        pstmtUserId.setString(1, email);
+                        ResultSet rs = pstmtUserId.executeQuery();
+
+                        if (rs.next()) {
+                            int userId = rs.getInt("user_id");
+
+                            try (PreparedStatement pstmtInsertTweet = conn.prepareStatement(sqlInsertTweet)) {
+                                pstmtInsertTweet.setInt(1, userId);
+                                pstmtInsertTweet.setString(2, content);
+                                pstmtInsertTweet.setTimestamp(3, timestamp);
+                                pstmtInsertTweet.setString(4, location);
+                                pstmtInsertTweet.setString(5, media);
+                                if (replyToTweetId != null) {
+                                    pstmtInsertTweet.setInt(6, replyToTweetId);
+                                } else {
+                                    pstmtInsertTweet.setNull(6, java.sql.Types.INTEGER);
+                                }
+                                pstmtInsertTweet.executeUpdate();
+                                ctx.redirect("/homepage");
+                            }
+                        } else {
+                            ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
+                        }
+                    } catch (SQLException e) {
+                        System.err.println("Error executing SQL: " + e.getMessage());
+                        e.printStackTrace();
+                        ctx.render("templates/homepage.peb", model("errorMessage", "Failed to post tweet. Error: " + e.getMessage()));
+                    }
+                })
+
+
+
+
+
                 .start(8000);
     }
 }
