@@ -1,4 +1,4 @@
-package org.xclone;
+/*package org.xclone;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,4 +19,4 @@ public class connection {
 
         return DriverManager.getConnection(url, user, password);
     }
-}
+}*/
