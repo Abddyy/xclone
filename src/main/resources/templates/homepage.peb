@@ -95,30 +95,38 @@ XClone Timeline
         <div class="alert alert-danger">{{ errorMessage }}</div>
     {% endif %}
     <div class="list-group">
-        {% for tweet in tweets %}
-            <div class="list-group-item">
-                <div class="d-flex w-100 justify-content-between">
-                    <div>
-                        <h5 class="mb-1">{{ tweet.userId }}</h5>
-                        <p>{{ tweet.content }}</p>
-                    </div>
-                    <small class="text-muted">{{ tweet.formattedTimestamp }}</small>
-                </div>
-                {% if tweet.location %}
-                    <small class="text-muted d-block">Location: {{ tweet.location }}</small>
-                {% endif %}
+{% for tweet in tweets %}
+<div class="list-group-item">
+    <div class="d-flex w-100 justify-content-between">
+        <div>
+            <h5 class="mb-1">{{ tweet.userId }}</h5>
+            <p>{{ tweet.content }}</p>
+        </div>
+        <small class="text-muted">{{ tweet.formattedTimestamp }}</small>
+    </div>
+    {% if tweet.location %}
+        <small class="text-muted d-block">Location: {{ tweet.location }}</small>
+    {% endif %}
         {% if tweet.media %}
-                    <div class="tweet-media mt-2">
-                        <img src="{{ tweet.media }}" alt="Media content">
-                    </div>
-                {% endif %}
+        <div class="tweet-media mt-2">
+            <img src="{{ tweet.media }}" alt="Media content">
+        </div>
+    {% endif %}
         {% if tweet.replyToTweetId %}
-                    <small class="text-muted">Replying to: {{ tweet.replyToTweetId }}</small>
-                {% endif %}
-            </div>
-        {% else %}
-            <div class="list-group-item">No tweets to display.</div>
-        {% endfor %}
+        <small class="text-muted">Replying to: {{ tweet.replyToTweetId }}</small>
+    {% endif %}
+    <!-- Like Button Form -->
+    <form action="/like" method="post">
+        <input type="hidden" name="tweetId" value="{{ tweet.tweetId }}">
+        <button type="submit" class="btn btn-primary btn-sm">Like</button>
+        <span class="badge bg-secondary">{{ tweet.likeCount }}</span> <!-- Displaying the like count -->
+    </form>
+</div>
+{% else %}
+<div class="list-group-item">No tweets to display.</div>
+{% endfor %}
+
+
     </div>
 </div>
 {% endblock %}
