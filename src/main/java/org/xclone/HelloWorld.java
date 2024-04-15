@@ -82,10 +82,13 @@ public class HelloWorld {
                     }
                 })
                 .get("/homepage", ctx -> {
-                    String sql = "SELECT t.tweet_id, t.user_id, t.content, t.timestamp, t.location, t.media, t.in_reply_to_tweet_id," +
-                            " COUNT(l.like_id) as like_count FROM \"xcloneSchema\".\"tweet\" t " +
+                    String sql = "SELECT t.tweet_id, u.username, t.content, t.timestamp, t.location, t.media, t.in_reply_to_tweet_id, " +
+                            "COUNT(l.like_id) as like_count " +
+                            "FROM \"xcloneSchema\".\"tweet\" t " +
+                            "JOIN \"xcloneSchema\".\"user\" u ON t.user_id = u.user_id " +
                             "LEFT JOIN \"xcloneSchema\".\"like\" l ON t.tweet_id = l.tweet_id " +
-                            "GROUP BY t.tweet_id ORDER BY t.timestamp DESC";
+                            "GROUP BY t.tweet_id, u.username " +
+                            "ORDER BY t.timestamp DESC";
 
                     try (Connection conn = connection.getConnection();
                          PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -95,13 +98,13 @@ public class HelloWorld {
                         while (rs.next()) {
                             tweets.add(new Tweet(
                                     rs.getString("tweet_id"),
-                                    rs.getString("user_id"),
+                                    rs.getString("username"), // Use username instead of user_id
                                     rs.getString("content"),
                                     rs.getTimestamp("timestamp"),
                                     rs.getString("location"),
                                     rs.getString("media"),
                                     rs.getString("in_reply_to_tweet_id"),
-                                    rs.getInt("like_count")  // Assuming you have a constructor or setter for like_count
+                                    rs.getInt("like_count")
                             ));
                         }
                         ctx.render("templates/homepage.peb", model("tweets", tweets));
@@ -110,6 +113,7 @@ public class HelloWorld {
                         ctx.render("templates/homepage.peb", model("errorMessage", "Failed to load tweets."));
                     }
                 })
+
 
                 .post("/post", ctx -> {
                     String email = ctx.sessionAttribute("email");
@@ -242,25 +246,25 @@ public class HelloWorld {
 }
 
 class Tweet {
-    String tweetId, userId, content, location, media, replyToTweetId, formattedTimestamp;
+    String tweetId, username, content, location, media, replyToTweetId, formattedTimestamp;
     java.sql.Timestamp timestamp;
     int likeCount;
-    public Tweet(String tweetId, String userId, String content, java.sql.Timestamp timestamp, String location, String media, String replyToTweetId,int likeCount) {
+
+    public Tweet(String tweetId, String username, String content, java.sql.Timestamp timestamp, String location, String media, String replyToTweetId, int likeCount) {
         this.tweetId = tweetId;
-        this.userId = userId;
+        this.username = username;
         this.content = content;
         this.timestamp = timestamp;
         this.location = location;
         this.media = media;
         this.replyToTweetId = replyToTweetId;
-        // Format the timestamp here
-        this.likeCount = likeCount; // Initialize the like count
+        this.likeCount = likeCount;
         this.formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(timestamp);
     }
 
     // Getters
     public String getTweetId() { return tweetId; }
-    public String getUserId() { return userId; }
+    public String getUsername() { return username; }
     public String getContent() { return content; }
     public java.sql.Timestamp getTimestamp() { return timestamp; }
     public String getLocation() { return location; }

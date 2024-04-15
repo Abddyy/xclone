@@ -99,7 +99,7 @@ XClone Timeline
 <div class="list-group-item">
     <div class="d-flex w-100 justify-content-between">
         <div>
-            <h5 class="mb-1">{{ tweet.userId }}</h5>
+            <h5 class="mb-1">{{ tweet.username }}</h5> <!-- Display username instead of userId -->
             <p>{{ tweet.content }}</p>
         </div>
         <small class="text-muted">{{ tweet.formattedTimestamp }}</small>
@@ -119,7 +119,7 @@ XClone Timeline
     <form action="/like" method="post">
         <input type="hidden" name="tweetId" value="{{ tweet.tweetId }}">
         <button type="submit" class="btn btn-primary btn-sm">Like</button>
-        <span class="badge bg-secondary">{{ tweet.likeCount }}</span> <!-- Displaying the like count -->
+        <span class="badge bg-secondary">{{ tweet.likeCount }}</span>
     </form>
 </div>
 {% else %}
