@@ -12,17 +12,18 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class HelloWorld {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         JavalinRenderer.register(new JavalinPebble(), ".peb", ".pebble");
 
         Javalin app = Javalin.create(config -> {
                     config.fileRenderer(new JavalinPebble());
                     config.staticFiles.add("/static");
                 })
-
-               /* .get("/", ctx -> {
+/*
+               .get("/", ctx -> {
                     ctx.render("templates/main.peb");
                 })
+
                 .get("/login", ctx -> ctx.render("templates/login.peb"))
                 .post("/login", ctx -> {
                     String email = ctx.formParam("email");
@@ -239,8 +240,8 @@ public class HelloWorld {
                 .get("logout", ctx -> {
                     ctx.sessionAttribute("email", null);
                     ctx.redirect("/");
-                })*/
-
+                })
+*/
 
                 .start(8000);
 
