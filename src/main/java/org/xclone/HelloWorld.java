@@ -19,7 +19,8 @@ public class HelloWorld {
                     config.fileRenderer(new JavalinPebble());
                     config.staticFiles.add("/static");
                 })
-                .get("/", ctx -> {
+
+               /* .get("/", ctx -> {
                     ctx.render("templates/main.peb");
                 })
                 .get("/login", ctx -> ctx.render("templates/login.peb"))
@@ -49,7 +50,6 @@ public class HelloWorld {
                         ctx.render("templates/login.peb", model("errorMessage", "An error occurred. Please try again later."));
                     }
                 })
-
                 .get("/signup", ctx -> {
                     ctx.render("templates/signup.peb");
                 })
@@ -113,8 +113,6 @@ public class HelloWorld {
                         ctx.render("templates/homepage.peb", model("errorMessage", "Failed to load tweets."));
                     }
                 })
-
-
                 .post("/post", ctx -> {
                     String email = ctx.sessionAttribute("email");
                     if (email == null) {
@@ -167,7 +165,8 @@ public class HelloWorld {
                         e.printStackTrace();
                         ctx.render("templates/homepage.peb", model("errorMessage", "Failed to post tweet. Error: " + e.getMessage()));
                     }
-                }).post("/like", ctx -> {
+                })
+                .post("/like", ctx -> {
                     String email = ctx.sessionAttribute("email");
                     if (email == null) {
                         ctx.render("templates/homepage.peb", model("errorMessage", "You must be logged in to like tweets."));
@@ -240,8 +239,12 @@ public class HelloWorld {
                 .get("logout", ctx -> {
                     ctx.sessionAttribute("email", null);
                     ctx.redirect("/");
-                })
+                })*/
+
+
                 .start(8000);
+
+        RouteConfig.setupRoutes(app);
     }
 }
 
