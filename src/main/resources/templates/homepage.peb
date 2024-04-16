@@ -80,7 +80,7 @@ XClone Timeline
     <a href="#more">More</a>
 
     <!-- Form for posting new tweets -->
-    <form action="/post" method="post" style="padding: 10px;">
+    <form action="/app/post" method="post" style="padding: 10px;">
         <textarea name="content" placeholder="What's happening?" required style="width: 90%;"></textarea>
         <input type="text" name="location" placeholder="Location (optional)" style="width: 90%;">
         <input type="text" name="media" placeholder="Media URL (optional)" style="width: 90%;">
@@ -116,7 +116,7 @@ XClone Timeline
         <small class="text-muted">Replying to: {{ tweet.replyToTweetId }}</small>
     {% endif %}
     <!-- Like Button Form -->
-    <form action="/like" method="post">
+    <form action="/app/like" method="post">
         <input type="hidden" name="tweetId" value="{{ tweet.tweetId }}">
         <button type="submit" class="btn btn-primary btn-sm">Like</button>
         <span class="badge bg-secondary">{{ tweet.likeCount }}</span>
