@@ -3,6 +3,9 @@ package org.xclone.controllers;
 import io.javalin.http.Context;
 import org.xclone.Tweet;
 
+import java.util.Objects;
+import  java.util.Optional;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +57,11 @@ public class TweetController {
         String location = ctx.formParam("location");
         String media = ctx.formParam("media");
         // reply to tweet id can be empty string and I need it as int
-        int replyToTweetId = ctx.formParam("replyToTweetId") == "" ? 0 : Integer.parseInt(ctx.formParam("replyToTweetId"));
+
+        int replyToTweetId =Optional.ofNullable(ctx.formParam("replyToTweetId"))
+                .filter(val->!val.equals(""))
+                .map(val->Integer.parseInt(val))
+                .orElse(0);
 
         jdbi.inTransaction(handle -> {
             Integer userId = handle.createQuery("SELECT user_id FROM \"xcloneSchema\".\"user\" WHERE email = :email")
