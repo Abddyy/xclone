@@ -8,46 +8,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
+import org.jdbi.v3.core.Jdbi;
 
 
 public class TweetController {
-    private final Connection connection;
+    private Jdbi jdbi;
 
-    public TweetController(Connection connection) {
-        this.connection = connection;
+    public TweetController(Jdbi jdbi) {
+        this.jdbi = jdbi;
     }
 
-    public void renderHomepage(Context ctx){
-        String sql = "SELECT t.tweet_id, u.username, t.content, t.timestamp, t.location, t.media, t.in_reply_to_tweet_id, " +
-                "COUNT(l.like_id) as like_count " +
-                "FROM \"xcloneSchema\".\"tweet\" t " +
-                "JOIN \"xcloneSchema\".\"user\" u ON t.user_id = u.user_id " +
-                "LEFT JOIN \"xcloneSchema\".\"like\" l ON t.tweet_id = l.tweet_id " +
-                "GROUP BY t.tweet_id, u.username " +
-                "ORDER BY t.timestamp DESC";
-
-        try (PreparedStatement pstmt = this.connection.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            List<Tweet> tweets = new ArrayList<>();
-
-            while (rs.next()) {
-                tweets.add(new Tweet(
-                        rs.getString("tweet_id"),
-                        rs.getString("username"), // Use username instead of user_id
-                        rs.getString("content"),
-                        rs.getTimestamp("timestamp"),
-                        rs.getString("location"),
-                        rs.getString("media"),
-                        rs.getString("in_reply_to_tweet_id"),
-                        rs.getInt("like_count")
-                ));
-            }
-            ctx.render("templates/homepage.peb", model("tweets", tweets));
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ctx.render("templates/homepage.peb", model("errorMessage", "Failed to load tweets."));
-        }
+    public void renderHomepage(Context ctx) {
+        List<Tweet> tweets = jdbi.withHandle(handle ->
+                handle.createQuery("SELECT t.tweet_id, u.username, t.content, t.timestamp, t.location, t.media, t.in_reply_to_tweet_id, COUNT(l.like_id) as like_count " +
+                                "FROM \"xcloneSchema\".\"tweet\" t " +
+                                "JOIN \"xcloneSchema\".\"user\" u ON t.user_id = u.user_id " +
+                                "LEFT JOIN \"xcloneSchema\".\"like\" l ON t.tweet_id = l.tweet_id " +
+                                "GROUP BY t.tweet_id, u.username " +
+                                "ORDER BY t.timestamp DESC")
+                        .map((rs, mapCtx) -> new Tweet(
+                                rs.getString("tweet_id"),
+                                rs.getString("username"),
+                                rs.getString("content"),
+                                rs.getTimestamp("timestamp"),
+                                rs.getString("location"),
+                                rs.getString("media"),
+                                rs.getString("in_reply_to_tweet_id"),
+                                rs.getInt("like_count")
+                        ))
+                        .list()
+        );
+        ctx.render("templates/homepage.peb", model("tweets", tweets));
     }
+
+
 
     public void handlePostCreate(Context ctx){
         String email = ctx.sessionAttribute("email");
@@ -59,48 +53,34 @@ public class TweetController {
         String content = ctx.formParam("content");
         String location = ctx.formParam("location");
         String media = ctx.formParam("media");
-        String replyToTweetIdString = ctx.formParam("replyToTweetId"); // Treat as null if not provided
+        // reply to tweet id can be empty string and I need it as int
+        int replyToTweetId = ctx.formParam("replyToTweetId") == "" ? 0 : Integer.parseInt(ctx.formParam("replyToTweetId"));
 
-        java.sql.Timestamp timestamp = new java.sql.Timestamp(System.currentTimeMillis());
+        jdbi.inTransaction(handle -> {
+            Integer userId = handle.createQuery("SELECT user_id FROM \"xcloneSchema\".\"user\" WHERE email = :email")
+                    .bind("email", email)
+                    .mapTo(Integer.class)
+                    .findOne()
+                    .orElse(null);
 
-        Integer replyToTweetId = null; // Default to null if not provided
-        if (replyToTweetIdString != null && !replyToTweetIdString.isEmpty() && replyToTweetIdString.matches("\\d+")) {
-            replyToTweetId = Integer.parseInt(replyToTweetIdString);
-        }
-
-        String sqlUserId = "SELECT user_id FROM \"xcloneSchema\".\"user\" WHERE email = ?";
-        String sqlInsertTweet = "INSERT INTO \"xcloneSchema\".\"tweet\" (user_id, content, \"timestamp\", location, media, in_reply_to_tweet_id) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement pstmtUserId = this.connection.prepareStatement(sqlUserId)) {
-            pstmtUserId.setString(1, email);
-            ResultSet rs = pstmtUserId.executeQuery();
-
-            if (rs.next()) {
-                int userId = rs.getInt("user_id");
-
-                try (PreparedStatement pstmtInsertTweet = this.connection.prepareStatement(sqlInsertTweet)) {
-                    pstmtInsertTweet.setInt(1, userId);
-                    pstmtInsertTweet.setString(2, content);
-                    pstmtInsertTweet.setTimestamp(3, timestamp);
-                    pstmtInsertTweet.setString(4, location);
-                    pstmtInsertTweet.setString(5, media);
-                    if (replyToTweetId != null) {
-                        pstmtInsertTweet.setInt(6, replyToTweetId);
-                    } else {
-                        pstmtInsertTweet.setNull(6, java.sql.Types.INTEGER);
-                    }
-                    pstmtInsertTweet.executeUpdate();
-                    ctx.redirect("/app/homepage");
-                }
-            } else {
+            if (userId == null) {
                 ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
+                return null; // Stop the transaction
             }
-        } catch (SQLException e) {
-            System.err.println("Error executing SQL: " + e.getMessage());
-            e.printStackTrace();
-            ctx.render("templates/homepage.peb", model("errorMessage", "Failed to post tweet. Error: " + e.getMessage()));
-        }
+
+            handle.createUpdate("INSERT INTO \"xcloneSchema\".\"tweet\" (user_id, content, timestamp, location, media, in_reply_to_tweet_id) VALUES (:userId, :content, NOW(), :location, :media, :replyToTweetId)")
+                    .bind("userId", userId)
+                    .bind("content", content)
+                    .bind("location", location)
+                    .bind("media", media)
+                    .bind("replyToTweetId", replyToTweetId==0 ? null : replyToTweetId)
+                    .execute();
+
+            ctx.redirect("/app/homepage");
+            return null; // Complete the transaction
+        });
     }
+
 
     public void handleLikeAction(Context ctx){
         String email = ctx.sessionAttribute("email");
@@ -109,69 +89,39 @@ public class TweetController {
             return;
         }
 
-        String tweetIdStr = ctx.formParam("tweetId");
-        int tweetId;
-        try {
-            tweetId = Integer.parseInt(tweetIdStr);
-        } catch (NumberFormatException e) {
-            ctx.render("templates/homepage.peb", model("errorMessage", "Invalid tweet ID."));
-            return;
-        }
+        int tweetId = Integer.parseInt(ctx.formParam("tweetId"));
+        jdbi.inTransaction(handle -> {
+            Integer userId = handle.createQuery("SELECT user_id FROM \"xcloneSchema\".\"user\" WHERE email = :email")
+                    .bind("email", email)
+                    .mapTo(Integer.class)
+                    .findOne()
+                    .orElse(null);
 
-        String sqlUserId = "SELECT user_id FROM \"xcloneSchema\".\"user\" WHERE email = ?";
-        String sqlCheckLike = "SELECT * FROM \"xcloneSchema\".\"like\" WHERE tweet_id = ? AND user_id = ?";
-        String sqlInsertLike = "INSERT INTO \"xcloneSchema\".\"like\" (tweet_id, user_id, \"timestamp\") VALUES (?, ?, NOW())";
-        String sqlDeleteLike = "DELETE FROM \"xcloneSchema\".\"like\" WHERE tweet_id = ? AND user_id = ?";
-
-        try (PreparedStatement pstmtUserId = this.connection.prepareStatement(sqlUserId)) {
-            pstmtUserId.setString(1, email);
-            ResultSet rs = pstmtUserId.executeQuery();
-
-            if (rs.next()) {
-                int userId = rs.getInt("user_id");
-
-                try {
-                    this.connection.setAutoCommit(false); // Start transaction
-                    // Check if like exists
-                    try (PreparedStatement pstmtCheckLike = this.connection.prepareStatement(sqlCheckLike)) {
-                        pstmtCheckLike.setInt(1, tweetId);
-                        pstmtCheckLike.setInt(2, userId);
-                        ResultSet rsLike = pstmtCheckLike.executeQuery();
-
-                        if (rsLike.next()) {
-                            // Like exists, perform unlike (delete)
-                            try (PreparedStatement pstmtDeleteLike = this.connection.prepareStatement(sqlDeleteLike)) {
-                                pstmtDeleteLike.setInt(1, tweetId);
-                                pstmtDeleteLike.setInt(2, userId);
-                                pstmtDeleteLike.executeUpdate();
-                            }
-                        } else {
-                            // Like does not exist, perform like (insert)
-                            try (PreparedStatement pstmtInsertLike = this.connection.prepareStatement(sqlInsertLike)) {
-                                pstmtInsertLike.setInt(1, tweetId);
-                                pstmtInsertLike.setInt(2, userId);
-                                pstmtInsertLike.executeUpdate();
-                            }
-                        }
-                        this.connection.commit(); // Commit transaction
-                    }
-                    ctx.redirect("/app/homepage");
-                } catch (Exception ex) {
-                    this.connection.rollback(); // Rollback on error
-                    throw ex;
-                } finally {
-                    this.connection.setAutoCommit(true); // Reset auto-commit
-                }
-            } else {
+            if (userId == null) {
                 ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
+                return null; // Stop the transaction
             }
-        } catch (SQLException e) {
-            System.err.println("Error executing SQL: " + e.getMessage());
-            e.printStackTrace();
-            ctx.render("templates/homepage.peb", model("errorMessage", "Failed to toggle like. Error: " + e.getMessage()));
-        }
+
+            boolean exists = handle.createQuery("SELECT COUNT(*) FROM \"xcloneSchema\".\"like\" WHERE tweet_id = :tweetId AND user_id = :userId")
+                    .bind("tweetId", tweetId)
+                    .bind("userId", userId)
+                    .mapTo(Integer.class)
+                    .one() > 0;
+
+            if (exists) {
+                handle.createUpdate("DELETE FROM \"xcloneSchema\".\"like\" WHERE tweet_id = :tweetId AND user_id = :userId")
+                        .bind("tweetId", tweetId)
+                        .bind("userId", userId)
+                        .execute();
+            } else {
+                handle.createUpdate("INSERT INTO \"xcloneSchema\".\"like\" (tweet_id, user_id, timestamp) VALUES (:tweetId, :userId, NOW())")
+                        .bind("tweetId", tweetId)
+                        .bind("userId", userId)
+                        .execute();
+            }
+
+            ctx.redirect("/app/homepage");
+            return null; // Complete the transaction
+        });
     }
-
-
-
 }

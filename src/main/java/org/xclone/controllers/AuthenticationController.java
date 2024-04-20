@@ -4,13 +4,14 @@ import io.javalin.http.Context;
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
 import static io.javalin.rendering.template.TemplateUtil.model;
+import org.jdbi.v3.core.Jdbi;
 
 
 public class AuthenticationController {
-    private final Connection connection;
+    private Jdbi jdbi;
 
-    public AuthenticationController(Connection connection) {
-        this.connection = connection;
+    public AuthenticationController(Jdbi jdbi) {
+        this.jdbi = jdbi;
     }
 
     public void renderLogin(Context ctx) {
@@ -20,27 +21,23 @@ public class AuthenticationController {
     public void handleLogin(Context ctx) {
         String email = ctx.formParam("email");
         String password = ctx.formParam("password");
-        String sql = "SELECT user_id, password FROM \"xcloneSchema\".\"user\" WHERE email = ?";
 
-        try (PreparedStatement pstmt = this.connection.prepareStatement(sql)) {
-            pstmt.setString(1, email);
-            ResultSet rs = pstmt.executeQuery();
+        jdbi.useHandle(handle -> {
+            String dbPassword = handle.createQuery("SELECT password FROM \"xcloneSchema\".\"user\" WHERE email = :email")
+                    .bind("email", email)
+                    .mapTo(String.class)
+                    .findOne()
+                    .orElse(null);
 
-            if (rs.next()) {
-                String dbPassword = rs.getString("password");
-                if (BCrypt.checkpw(password, dbPassword)) {
-                    ctx.sessionAttribute("email", email); // Store email in session
-                    ctx.redirect("/app/homepage");
-                } else {
-                    ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
-                }
+            if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
+                ctx.sessionAttribute("email", email); // Store email in session
+                ctx.redirect("/app/homepage");
+            } else if (dbPassword != null) {
+                ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
             } else {
                 ctx.render("templates/login.peb", model("errorMessage", "No user found with that email."));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ctx.render("templates/login.peb", model("errorMessage", "An error occurred. Please try again later."));
-        }
+        });
     }
 
     public void renderSignup(Context ctx) {
@@ -52,29 +49,29 @@ public class AuthenticationController {
         String password = ctx.formParam("password");
         String username = ctx.formParam("username");
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
-        String sql = "SELECT * FROM \"xcloneSchema\".\"user\" WHERE email = ?";
-        try (
-             PreparedStatement pstmt = this.connection.prepareStatement(sql)) {
-            pstmt.setString(1, email);
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
+
+        jdbi.inTransaction(handle -> {
+            long userCount = handle.createQuery("SELECT COUNT(*) FROM \"xcloneSchema\".\"user\" WHERE email = :email")
+                    .bind("email", email)
+                    .mapTo(Long.class)
+                    .one();
+
+            if (userCount > 0) {
                 ctx.render("templates/signup.peb", model("errorMessage", "Email already exists. Please use a different email."));
+                return null; // Stop transaction
             } else {
-                String insertSql = "INSERT INTO \"xcloneSchema\".\"user\" (email, password, username) VALUES (?, ?, ?)";
-                try (PreparedStatement insertStmt = this.connection.prepareStatement(insertSql)) {
-                    insertStmt.setString(1, email);
-                    insertStmt.setString(2, hashedPassword);
-                    insertStmt.setString(3, username);
-                    insertStmt.executeUpdate();
-                    ctx.sessionAttribute("user", email);
-                    ctx.redirect("/homepage");
-                }
+                handle.createUpdate("INSERT INTO \"xcloneSchema\".\"user\" (email, password, username) VALUES (:email, :password, :username)")
+                        .bind("email", email)
+                        .bind("password", hashedPassword)
+                        .bind("username", username)
+                        .execute();
+                ctx.sessionAttribute("user", email);
+                ctx.redirect("/homepage");
+                return null; // Complete transaction
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            ctx.render("templates/signup.peb", model("errorMessage", "An error occurred during signup. Please try again."));
-        }
+        });
     }
+
 
     public void handleLogout(Context ctx) {
         ctx.sessionAttribute("email", null);

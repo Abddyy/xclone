@@ -1,22 +1,20 @@
-/*package org.xclone;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-public class connection {
-
-    public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        String url = "jdbc:postgresql://localhost/xclone";
-        String user = "";
-        String password = "";
-
-        return DriverManager.getConnection(url, user, password);
-    }
-}*/
+//package org.xclone;
+//
+//import org.jdbi.v3.core.Jdbi;
+//import org.jdbi.v3.sqlobject.SqlObjectPlugin;
+//
+//public class DatabaseConnection {
+//
+//    private static final String URL = "jdbc:postgresql://localhost/<DB_NAME>";
+//    private static final String USER = "<DB_USER>";
+//    private static final String PASSWORD = "<DB_PASSWORD>";
+//    private static Jdbi jdbi = null;
+//
+//    public static Jdbi getJdbi() {
+//        if (jdbi == null) {
+//            jdbi = Jdbi.create(URL, USER, PASSWORD);
+//            jdbi.installPlugin(new SqlObjectPlugin());  // This plugin supports SQL Object API
+//        }
+//        return jdbi;
+//    }
+//}
