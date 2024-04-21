@@ -11,15 +11,54 @@
         align-items: center;
         background: url('images/background.png') no-repeat center center fixed;
         background-size: cover;
+
     }
     .container {
         text-align: center;
-        background-color: rgba(255, 255, 255, 0.8);
+        background-color: rgba(50, 50, 50, 0.8);
         padding: 20px;
         border-radius: 15px;
+        color: #FFF;
     }
     h1 {
         margin-bottom: 30px;
+    }
+    /* Modal styles */
+    .modal {
+        overflow: hidden;
+        display: none;
+        position: center;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+
+    }
+
+    .modal-content {
+
+        background-color: #333;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: white;
+        text-decoration: none;
+        cursor: pointer;
     }
 </style>
 {% endblock %}
@@ -27,10 +66,43 @@
     {% block body %}
 <div class="container">
     <h1>Happening now<br>Join today.</h1>
-    <!-- Convert links to HTMX-driven requests -->
-    <button hx-get="/login" hx-trigger="click" hx-target="#main-content" hx-swap="outerHTML" class="btn btn-primary btn-lg">Login</button>
-    <button hx-get="/signup" hx-trigger="click" hx-target="#main-content" hx-swap="outerHTML" class="btn btn-secondary btn-lg">Sign Up</button>
+    <button onclick="openLoginModal()" class="btn btn-primary btn-lg">Login</button>
+    <button onclick="openSignupModal()" class="btn btn-secondary btn-lg">Sign Up</button>
 </div>
-<!-- This div will be used to dynamically load the content fetched by HTMX -->
-<div id="main-content"></div>
+
+<!-- Login Modal HTML -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('loginModal')">&times;</span>
+        <div id="login-content"></div>
+    </div>
+</div>
+
+<!-- Signup Modal HTML -->
+<div id="signupModal" class="modal">
+    <div class="modal-content signup-modal-content">
+        <span class="close" onclick="closeModal('signupModal')">&times;</span>
+        <div id="signup-content"></div>
+    </div>
+</div>
+
+<script>
+function openModal(modalId) {
+    document.getElementById(modalId).style.display = "block";
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+}
+
+function openLoginModal() {
+    openModal('loginModal');
+    htmx.ajax('GET', '/login', {target: '#login-content'});
+}
+
+function openSignupModal() {
+    openModal('signupModal');
+    htmx.ajax('GET', '/signup', {target: '#signup-content'});
+}
+</script>
 {% endblock %}
