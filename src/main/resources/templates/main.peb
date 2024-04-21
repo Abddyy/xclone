@@ -67,6 +67,7 @@
 <div class="container">
     <h1>Happening now<br>Join today.</h1>
     <button onclick="openLoginModal()" class="btn btn-primary btn-lg">Login</button>
+
     <button onclick="openSignupModal()" class="btn btn-secondary btn-lg">Sign Up</button>
 </div>
 
@@ -98,11 +99,13 @@ function closeModal(modalId) {
 function openLoginModal() {
     openModal('loginModal');
     htmx.ajax('GET', '/login', {target: '#login-content'});
+    closeModal('signupModal');
 }
 
 function openSignupModal() {
     openModal('signupModal');
     htmx.ajax('GET', '/signup', {target: '#signup-content'});
+    closeModal('loginModal');
 }
 </script>
 {% endblock %}

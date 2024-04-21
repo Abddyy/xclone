@@ -13,6 +13,10 @@
                     </div>
                     <div class="mb-3 text-center">
                         <button type="submit" class="btn btn-primary">Login</button>
+                          <br>
+                          <br>
+                         <p>Don't have an account? <a class="text-primary" onclick="openSignupModal()">Sign Up</a>
+                        </p>
                     </div>
                     {% if errorMessage %}
                         <div class="alert alert-danger" role="alert">
