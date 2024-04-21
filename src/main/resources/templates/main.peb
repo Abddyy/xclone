@@ -1,35 +1,36 @@
-{% extends "templates/base.peb" %}
+    {% extends "templates/base.peb" %}
 
-{% block styles %}
- <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: url('images/background.png') no-repeat center center fixed;
-            background-size: cover;
-
-        }
-        .container {
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-radius: 15px;
-        }
-        h1 {
-            margin-bottom: 30px;
-        }
-    </style>
+        {% block styles %}
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: url('images/background.png') no-repeat center center fixed;
+        background-size: cover;
+    }
+    .container {
+        text-align: center;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 15px;
+    }
+    h1 {
+        margin-bottom: 30px;
+    }
+</style>
 {% endblock %}
 
-{% block body %}
-  <div class="container">
-        <h1>Happening now<br>Join today.</h1>
-        <a href="/login" class="btn btn-primary btn-lg">Login</a>
-        <a href="/signup" class="btn btn-secondary btn-lg">Sign Up</a>
-    </div>
+    {% block body %}
+<div class="container">
+    <h1>Happening now<br>Join today.</h1>
+    <!-- Convert links to HTMX-driven requests -->
+    <button hx-get="/login" hx-trigger="click" hx-target="#main-content" hx-swap="outerHTML" class="btn btn-primary btn-lg">Login</button>
+    <button hx-get="/signup" hx-trigger="click" hx-target="#main-content" hx-swap="outerHTML" class="btn btn-secondary btn-lg">Sign Up</button>
+</div>
+<!-- This div will be used to dynamically load the content fetched by HTMX -->
+<div id="main-content"></div>
 {% endblock %}
-
