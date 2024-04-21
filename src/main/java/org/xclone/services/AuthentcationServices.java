@@ -1,8 +1,8 @@
-package org.xclone.queries;
+package org.xclone.services;
 
 import org.jdbi.v3.core.Handle;
 
-public class AuthentcationQuries {
+public class AuthentcationServices {
 
     private String get_user_info_query = "SELECT password FROM \"xcloneSchema\".\"user\" WHERE email = :email";
     private String check_signup_query = "SELECT COUNT(*) FROM \"xcloneSchema\".\"user\" WHERE email = :email";

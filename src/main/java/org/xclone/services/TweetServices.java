@@ -1,13 +1,12 @@
-package org.xclone.queries;
+package org.xclone.services;
 import java.util.List;
 
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
 
-import org.jdbi.v3.core.Jdbi;
 import org.xclone.Tweet;
 
-public class TweetQuries {
+public class TweetServices {
     private String tweet_contant_query=
             "SELECT t.tweet_id, u.username, t.content, t.timestamp, t.location, t.media, t.in_reply_to_tweet_id, COUNT(l.like_id) as like_count " +
             "FROM \"xcloneSchema\".\"tweet\" t " +

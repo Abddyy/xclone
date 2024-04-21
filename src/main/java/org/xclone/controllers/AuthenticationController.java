@@ -2,10 +2,10 @@ package org.xclone.controllers;
 
 import io.javalin.http.Context;
 import org.mindrot.jbcrypt.BCrypt;
-import java.sql.*;
+
 import static io.javalin.rendering.template.TemplateUtil.model;
 import org.jdbi.v3.core.Jdbi;
-import org.xclone.queries.AuthentcationQuries;
+import org.xclone.services.AuthentcationServices;
 
 
 public class AuthenticationController {
@@ -22,9 +22,9 @@ public class AuthenticationController {
     public void handleLogin(Context ctx) {
 
         String password = ctx.formParam("password");
-        AuthentcationQuries authentcationQuries = new AuthentcationQuries();
+        AuthentcationServices authentcationServices = new AuthentcationServices();
         jdbi.useHandle(handle -> {
-            String dbPassword = authentcationQuries.getUserInfoQuery(handle, ctx.formParam("email"));
+            String dbPassword = authentcationServices.getUserInfoQuery(handle, ctx.formParam("email"));
 
             if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
                 ctx.sessionAttribute("email", ctx.formParam("email"));
@@ -42,7 +42,7 @@ public class AuthenticationController {
     }
 
     public void handleSignup(Context ctx) {
-        AuthentcationQuries authentcationQuries = new AuthentcationQuries();
+        AuthentcationServices authentcationServices = new AuthentcationServices();
 
         String email = ctx.formParam("email");
         String password = ctx.formParam("password");
@@ -50,13 +50,13 @@ public class AuthenticationController {
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
         jdbi.inTransaction(handle -> {
-            long userCount = authentcationQuries.checkSignupAvailability(handle, email);
+            long userCount = authentcationServices.checkSignupAvailability(handle, email);
 
             if (userCount > 0) {
                 ctx.render("templates/signup.peb", model("errorMessage", "Email already exists. Please use a different email."));
                 return null; // Stop transaction
             } else {
-                authentcationQuries.doSignupQuery(handle, email, hashedPassword, username);
+                authentcationServices.doSignupQuery(handle, email, hashedPassword, username);
                 ctx.sessionAttribute("email", email);
                 ctx.redirect("/app/homepage");
                 return null; // Complete transaction

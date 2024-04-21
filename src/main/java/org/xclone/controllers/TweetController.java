@@ -3,21 +3,18 @@ package org.xclone.controllers;
 import io.javalin.http.Context;
 import org.xclone.Tweet;
 
-import java.util.Objects;
 import  java.util.Optional;
 
-import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 import org.jdbi.v3.core.Jdbi;
-import org.xclone.queries.TweetQuries;
+import org.xclone.services.TweetServices;
 
 
 public class TweetController {
     private Jdbi jdbi;
-    private TweetQuries tweetQuries = new TweetQuries();
+    private TweetServices tweetServices = new TweetServices();
 
 
     public TweetController(Jdbi jdbi) {
@@ -25,7 +22,7 @@ public class TweetController {
     }
 
     public void renderHomepage(Context ctx) {
-        List<Tweet> tweets = tweetQuries.tweetlist(jdbi);
+        List<Tweet> tweets = tweetServices.tweetlist(jdbi);
         ctx.render("templates/homepage.peb", model("tweets", tweets));
     }
 
@@ -49,14 +46,14 @@ public class TweetController {
                 .orElse(0);
 
         jdbi.inTransaction(handle -> {
-            Integer userId = tweetQuries.getUserID(handle, email);
+            Integer userId = tweetServices.getUserID(handle, email);
 
             if (userId == null) {
                 ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
                 return null;
             }
 
-         tweetQuries.getNewTweet(handle, userId, content, location, media, replyToTweetId);
+         tweetServices.getNewTweet(handle, userId, content, location, media, replyToTweetId);
 
             ctx.redirect("/app/homepage");
             return null; // Complete the transaction
@@ -73,19 +70,19 @@ public class TweetController {
 
         int tweetId = Integer.parseInt(ctx.formParam("tweetId"));
         jdbi.inTransaction(handle -> {
-            Integer userId = tweetQuries.getUserID(handle, email);
+            Integer userId = tweetServices.getUserID(handle, email);
 
             if (userId == null) {
                 ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
                 return null; // Stop the transaction
             }
 
-            boolean exists = tweetQuries.isLiked(handle, tweetId, userId);
+            boolean exists = tweetServices.isLiked(handle, tweetId, userId);
 
             if (exists) {
-                tweetQuries.removeLike(handle,tweetId,userId);
+                tweetServices.removeLike(handle,tweetId,userId);
             } else {
-                tweetQuries.addLike(handle,tweetId,userId);
+                tweetServices.addLike(handle,tweetId,userId);
             }
 
             ctx.redirect("/app/homepage");
