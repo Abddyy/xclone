@@ -7,9 +7,8 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 import org.jdbi.v3.core.Jdbi;
 import org.xclone.services.AuthentcationServices;
 
-
 public class AuthenticationController {
-    private Jdbi jdbi;
+    private final Jdbi jdbi;
 
     public AuthenticationController(Jdbi jdbi) {
         this.jdbi = jdbi;
@@ -20,11 +19,11 @@ public class AuthenticationController {
     }
 
     public void handleLogin(Context ctx) {
-
         String password = ctx.formParam("password");
-        AuthentcationServices authentcationServices = new AuthentcationServices();
+        AuthentcationServices authenticationServices = new AuthentcationServices();
+
         jdbi.useHandle(handle -> {
-            String dbPassword = authentcationServices.getUserInfoQuery(handle, ctx.formParam("email"));
+            String dbPassword = authenticationServices.getUserInfoQuery(handle, ctx.formParam("email"));
 
             if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
                 ctx.sessionAttribute("email", ctx.formParam("email"));
@@ -42,28 +41,25 @@ public class AuthenticationController {
     }
 
     public void handleSignup(Context ctx) {
-        AuthentcationServices authentcationServices = new AuthentcationServices();
-
         String email = ctx.formParam("email");
         String password = ctx.formParam("password");
         String username = ctx.formParam("username");
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
-        jdbi.inTransaction(handle -> {
-            long userCount = authentcationServices.checkSignupAvailability(handle, email);
+        AuthentcationServices authenticationServices = new AuthentcationServices();
+
+        jdbi.useTransaction(handle -> {
+            long userCount = authenticationServices.checkSignupAvailability(handle, email);
 
             if (userCount > 0) {
                 ctx.render("templates/signup.peb", model("errorMessage", "Email already exists. Please use a different email."));
-                return null; // Stop transaction
             } else {
-                authentcationServices.doSignupQuery(handle, email, hashedPassword, username);
+                authenticationServices.doSignupQuery(handle, email, hashedPassword, username);
                 ctx.sessionAttribute("email", email);
                 ctx.redirect("/app/homepage");
-                return null; // Complete transaction
             }
         });
     }
-
 
     public void handleLogout(Context ctx) {
         ctx.sessionAttribute("email", null);

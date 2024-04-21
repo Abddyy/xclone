@@ -2,20 +2,17 @@ package org.xclone.controllers;
 
 import io.javalin.http.Context;
 import org.xclone.Tweet;
-
-import  java.util.Optional;
+import org.xclone.services.TweetServices;
+import org.jdbi.v3.core.Jdbi;
 
 import java.util.List;
+import java.util.Optional;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
-import org.jdbi.v3.core.Jdbi;
-import org.xclone.services.TweetServices;
-
 
 public class TweetController {
-    private Jdbi jdbi;
-    private TweetServices tweetServices = new TweetServices();
-
+    private final Jdbi jdbi;
+    private final TweetServices tweetServices = new TweetServices();
 
     public TweetController(Jdbi jdbi) {
         this.jdbi = jdbi;
@@ -26,9 +23,7 @@ public class TweetController {
         ctx.render("templates/homepage.peb", model("tweets", tweets));
     }
 
-    public void handlePostCreate(Context ctx){
-
-
+    public void handlePostCreate(Context ctx) {
         String email = ctx.sessionAttribute("email");
         if (email == null) {
             ctx.render("templates/homepage.peb", model("errorMessage", "You must be logged in to post tweets."));
@@ -38,30 +33,23 @@ public class TweetController {
         String content = ctx.formParam("content");
         String location = ctx.formParam("location");
         String media = ctx.formParam("media");
-        // reply to tweet id can be empty string and I need it as int
-
-        int replyToTweetId =Optional.ofNullable(ctx.formParam("replyToTweetId"))
-                .filter(val->!val.equals(""))
-                .map(val->Integer.parseInt(val))
+        int replyToTweetId = Optional.ofNullable(ctx.formParam("replyToTweetId"))
+                .filter(val -> !val.isEmpty())
+                .map(Integer::parseInt)
                 .orElse(0);
 
-        jdbi.inTransaction(handle -> {
+        jdbi.useTransaction(handle -> {
             Integer userId = tweetServices.getUserID(handle, email);
-
             if (userId == null) {
                 ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
-                return null;
+                return;
             }
-
-         tweetServices.getNewTweet(handle, userId, content, location, media, replyToTweetId);
-
+            tweetServices.getNewTweet(handle, userId, content, location, media, replyToTweetId);
             ctx.redirect("/app/homepage");
-            return null; // Complete the transaction
         });
     }
 
-
-    public void handleLikeAction(Context ctx){
+    public void handleLikeAction(Context ctx) {
         String email = ctx.sessionAttribute("email");
         if (email == null) {
             ctx.render("templates/homepage.peb", model("errorMessage", "You must be logged in to like tweets."));
@@ -69,24 +57,21 @@ public class TweetController {
         }
 
         int tweetId = Integer.parseInt(ctx.formParam("tweetId"));
-        jdbi.inTransaction(handle -> {
+        jdbi.useTransaction(handle -> {
             Integer userId = tweetServices.getUserID(handle, email);
-
             if (userId == null) {
                 ctx.render("templates/homepage.peb", model("errorMessage", "User not found."));
-                return null; // Stop the transaction
+                return;
             }
 
             boolean exists = tweetServices.isLiked(handle, tweetId, userId);
-
             if (exists) {
-                tweetServices.removeLike(handle,tweetId,userId);
+                tweetServices.removeLike(handle, tweetId, userId);
             } else {
-                tweetServices.addLike(handle,tweetId,userId);
+                tweetServices.addLike(handle, tweetId, userId);
             }
 
             ctx.redirect("/app/homepage");
-            return null; // Complete the transaction
         });
     }
 }
