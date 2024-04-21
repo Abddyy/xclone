@@ -20,14 +20,14 @@ public class AuthenticationController {
     }
 
     public void handleLogin(Context ctx) {
-        //String email = ctx.formParam("email");
+
         String password = ctx.formParam("password");
         AuthentcationQuries authentcationQuries = new AuthentcationQuries();
         jdbi.useHandle(handle -> {
-            String dbPassword = authentcationQuries.getLoginQuery(handle, ctx.formParam("email"));
+            String dbPassword = authentcationQuries.getUserInfoQuery(handle, ctx.formParam("email"));
 
             if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
-                ctx.sessionAttribute("email", ctx.formParam("email")); // Store email in session
+                ctx.sessionAttribute("email", ctx.formParam("email"));
                 ctx.redirect("/app/homepage");
             } else if (dbPassword != null) {
                 ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
@@ -42,28 +42,23 @@ public class AuthenticationController {
     }
 
     public void handleSignup(Context ctx) {
+        AuthentcationQuries authentcationQuries = new AuthentcationQuries();
+
         String email = ctx.formParam("email");
         String password = ctx.formParam("password");
         String username = ctx.formParam("username");
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
 
         jdbi.inTransaction(handle -> {
-            long userCount = handle.createQuery("SELECT COUNT(*) FROM \"xcloneSchema\".\"user\" WHERE email = :email")
-                    .bind("email", email)
-                    .mapTo(Long.class)
-                    .one();
+            long userCount = authentcationQuries.checkSignupAvailability(handle, email);
 
             if (userCount > 0) {
                 ctx.render("templates/signup.peb", model("errorMessage", "Email already exists. Please use a different email."));
                 return null; // Stop transaction
             } else {
-                handle.createUpdate("INSERT INTO \"xcloneSchema\".\"user\" (email, password, username) VALUES (:email, :password, :username)")
-                        .bind("email", email)
-                        .bind("password", hashedPassword)
-                        .bind("username", username)
-                        .execute();
-                ctx.sessionAttribute("user", email);
-                ctx.redirect("/homepage");
+                authentcationQuries.doSignupQuery(handle, email, hashedPassword, username);
+                ctx.sessionAttribute("email", email);
+                ctx.redirect("/app/homepage");
                 return null; // Complete transaction
             }
         });
