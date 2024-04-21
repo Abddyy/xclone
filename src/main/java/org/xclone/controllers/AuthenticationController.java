@@ -5,6 +5,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
 import static io.javalin.rendering.template.TemplateUtil.model;
 import org.jdbi.v3.core.Jdbi;
+import org.xclone.queries.AuthentcationQuries;
 
 
 public class AuthenticationController {
@@ -19,18 +20,14 @@ public class AuthenticationController {
     }
 
     public void handleLogin(Context ctx) {
-        String email = ctx.formParam("email");
+        //String email = ctx.formParam("email");
         String password = ctx.formParam("password");
-
+        AuthentcationQuries authentcationQuries = new AuthentcationQuries();
         jdbi.useHandle(handle -> {
-            String dbPassword = handle.createQuery("SELECT password FROM \"xcloneSchema\".\"user\" WHERE email = :email")
-                    .bind("email", email)
-                    .mapTo(String.class)
-                    .findOne()
-                    .orElse(null);
+            String dbPassword = authentcationQuries.getLoginQuery(handle, ctx.formParam("email"));
 
             if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
-                ctx.sessionAttribute("email", email); // Store email in session
+                ctx.sessionAttribute("email", ctx.formParam("email")); // Store email in session
                 ctx.redirect("/app/homepage");
             } else if (dbPassword != null) {
                 ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
