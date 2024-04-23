@@ -149,7 +149,7 @@ XClone Timeline
     <a href="#lists">Lists</a>
     <a href="#profile">Profile</a>
     <a href="#more">More</a>
-    <button onclick="openModal()" class="btn btn-primary btn-lg">Post</button>
+    <button onclick="openModal()" class="btn btn-primary btn-lg btn-post">Post</button>
 </div>
 
 <div class="container content">

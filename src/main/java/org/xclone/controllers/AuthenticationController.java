@@ -7,6 +7,8 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 import org.jdbi.v3.core.Jdbi;
 import org.xclone.services.AuthentcationServices;
 
+import java.util.Map;
+
 public class AuthenticationController {
     private final Jdbi jdbi;
 
@@ -27,11 +29,11 @@ public class AuthenticationController {
 
             if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
                 ctx.sessionAttribute("email", ctx.formParam("email"));
-                ctx.redirect("/app/homepage");
+                ctx.json(Map.of("success", true, "redirect", "/app/homepage"));
             } else if (dbPassword != null) {
-                ctx.render("templates/login.peb", model("errorMessage", "Incorrect password."));
+                ctx.json(Map.of("success", false, "message", "Incorrect password."));
             } else {
-                ctx.render("templates/login.peb", model("errorMessage", "No user found with that email."));
+                ctx.json(Map.of("success", false, "message", "No user found with that email."));
             }
         });
     }
@@ -44,19 +46,17 @@ public class AuthenticationController {
         String email = ctx.formParam("email");
         String password = ctx.formParam("password");
         String username = ctx.formParam("username");
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
         AuthentcationServices authenticationServices = new AuthentcationServices();
 
         jdbi.useTransaction(handle -> {
             long userCount = authenticationServices.checkSignupAvailability(handle, email);
-
             if (userCount > 0) {
-                ctx.render("templates/signup.peb", model("errorMessage", "Email already exists. Please use a different email."));
+                ctx.json(Map.of("success", false, "message", "Email already exists. Please use a different email."));
             } else {
                 authenticationServices.doSignupQuery(handle, email, hashedPassword, username);
-                ctx.sessionAttribute("email", email);
-                ctx.redirect("/app/homepage");
+                ctx.json(Map.of("success", true, "redirect", "/app/homepage"));  // Ensure this URL is correct
             }
         });
     }

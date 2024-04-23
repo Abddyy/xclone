@@ -107,5 +107,7 @@ function openSignupModal() {
     htmx.ajax('GET', '/signup', {target: '#signup-content'});
     closeModal('loginModal');
 }
+
+
 </script>
 {% endblock %}
