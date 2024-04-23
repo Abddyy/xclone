@@ -100,6 +100,13 @@ XClone Timeline
         font-size: 24px;
         color: #ddd;
     }
+    .username-display {
+    color: #ddd;  /* Light grey color to match the sidebar links */
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+}
+
     /* Additional styles for inputs and textarea to match the dark theme */
     .modal input,
     .modal textarea {
@@ -150,6 +157,7 @@ XClone Timeline
     <a href="#profile">Profile</a>
     <a href="#more">More</a>
     <button onclick="openModal()" class="btn btn-primary btn-lg btn-post">Post</button>
+    <a href="#profile" class="username-display">{{ username }}</a>
 </div>
 
 <div class="container content">

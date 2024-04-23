@@ -1,10 +1,9 @@
 # things to do
 - [x] add demo data (min 5 tweets) and 5 accounts
-- [ ] likes system
+- [x] likes system
 - [ ] comments system
 - [ ] only owner of the tweet can delete it
 - [ ] use flyway for database migration
-- [ ] search for users
 - [x] Login/Sign up (in DB)
 - [x] News Feed(timeline based)
 - [x] Post a new Tweet
