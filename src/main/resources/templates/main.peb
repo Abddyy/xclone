@@ -107,7 +107,13 @@ function openSignupModal() {
     htmx.ajax('GET', '/signup', {target: '#signup-content'});
     closeModal('loginModal');
 }
-
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const myParam = urlParams.get('login');
+        if (myParam) {
+            openLoginModal();
+        }
+    };
 
 </script>
 {% endblock %}

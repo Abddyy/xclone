@@ -30,7 +30,7 @@ public class RouteConfig {
 
         app.before("app/*", ctx -> {
             if (ctx.sessionAttribute("email") == null) {
-                ctx.redirect("/");
+                ctx.redirect("/?login=true");
             }
         });
     }
