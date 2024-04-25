@@ -2,6 +2,7 @@ package org.xclone.controllers;
 
 import io.javalin.http.Context;
 import org.xclone.Tweet;
+import org.xclone.services.AuthentcationServices;
 import org.xclone.services.TweetServices;
 import org.jdbi.v3.core.Jdbi;
 
@@ -20,7 +21,8 @@ public class TweetController {
 
     public void renderHomepage(Context ctx) {
         List<Tweet> tweets = tweetServices.tweetlist(jdbi);
-        ctx.render("templates/homepage.peb", model("tweets", tweets));
+        String username = ctx.sessionAttribute("username");
+        ctx.render("templates/homepage.peb", model("tweets", tweets, "username", username));
     }
 
     public void handlePostCreate(Context ctx) {

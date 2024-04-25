@@ -23,12 +23,14 @@ public class AuthenticationController {
     public void handleLogin(Context ctx) {
         String password = ctx.formParam("password");
         AuthentcationServices authenticationServices = new AuthentcationServices();
+        String username =authenticationServices.getUserNameQuery(jdbi.open(),ctx.formParam("email"));
 
-        jdbi.useHandle(handle -> {
+                jdbi.useHandle(handle -> {
             String dbPassword = authenticationServices.getUserInfoQuery(handle, ctx.formParam("email"));
 
             if (dbPassword != null && BCrypt.checkpw(password, dbPassword)) {
                 ctx.sessionAttribute("email", ctx.formParam("email"));
+                ctx.sessionAttribute("username", username);
                 ctx.json(Map.of("success", true, "redirect", "/app/homepage"));
             } else if (dbPassword != null) {
                 ctx.json(Map.of("success", false, "message", "Incorrect password."));
