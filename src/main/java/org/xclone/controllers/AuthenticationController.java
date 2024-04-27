@@ -64,7 +64,7 @@ public class AuthenticationController {
     }
 
     public void handleLogout(Context ctx) {
-        ctx.sessionAttribute("email", null);
+        ctx.req().getSession().invalidate();
         ctx.redirect("/");
     }
 }
