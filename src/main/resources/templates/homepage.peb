@@ -172,10 +172,9 @@ XClone Timeline
     <a href="#notifications">Notifications</a>
     <a href="#messages">Messages</a>
     <a href="#lists">Lists</a>
-    <a href="#profile">Profile</a>
     <a href="#more">More</a>
     <button onclick="openModal()" class="btn btn-primary btn-lg btn-post">Post</button>
-    <a href="#profile" class="username-display">{{ username }}</a>
+    <a href="/profile" class="username-display">{{ username }}</a>
     </div>
     <a href="/logout" class="logout-link">Logout</a>
 </div>

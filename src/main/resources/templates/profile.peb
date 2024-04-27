@@ -1,0 +1,10 @@
+{% extends "templates/base.peb" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Profile Page</h1>
+        <p>This is a basic profile page for hello {{ username }}.</p>
+    </div>
+{% endblock %}

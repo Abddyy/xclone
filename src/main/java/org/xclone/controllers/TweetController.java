@@ -27,6 +27,7 @@ public class TweetController {
 
     public void handlePostCreate(Context ctx) {
         String email = ctx.sessionAttribute("email");
+
         if (email == null) {
             ctx.render("templates/homepage.peb", model("errorMessage", "You must be logged in to post tweets."));
             return;
