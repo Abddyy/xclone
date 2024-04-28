@@ -10,9 +10,13 @@ public class SqlRepo {
                     "ORDER BY t.timestamp DESC";
 
     private String tweet_profile_query=
-            "SELECT t.*, u.username FROM \"xcloneSchema\".\"tweet\" t " +
+            "SELECT t.tweet_id, t.content, t.timestamp AS tempTime, " +
+                    "(SELECT COUNT(*) FROM \"xcloneSchema\".\"like\" l WHERE l.tweet_id = t.tweet_id) AS like_count " +
+                    "FROM \"xcloneSchema\".\"tweet\" t " +
                     "JOIN \"xcloneSchema\".\"user\" u ON t.user_id = u.user_id " +
-                    "WHERE u.username = :username ORDER BY t.timestamp DESC";
+                    "WHERE u.username = :username " +
+                    "ORDER BY t.timestamp DESC";
+
     private String user_id_query =
             "SELECT user_id FROM \"xcloneSchema\".\"user\" " +
                     "WHERE email = :email";
