@@ -42,7 +42,7 @@ public class  Tweet {
     }
 
     public void setFormattedTimestamp(String formattedTimestamp) {
-        this.formattedTimestamp = formattedTimestamp;
+        this.formattedTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(formattedTimestamp);
     }
 
     public void setReplyToTweetId(String replyToTweetId) {
