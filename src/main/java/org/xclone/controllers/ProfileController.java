@@ -21,8 +21,10 @@ public class ProfileController {
     public void handleProfile(Context ctx){
 
         String username = ctx.sessionAttribute("username");
-        List<Tweet> tweets = jdbi.withHandle(handle -> tweetProfileServices.findTweetsByUsername(jdbi, username));
 
+
+        List<Tweet> tweets = jdbi.withHandle(handle -> tweetProfileServices.findTweetsByUsername(jdbi, username));
+        long likesCount = tweets.stream().mapToInt(tweet->tweet.getLikeCount()).count();
         ctx.render("templates/profile.peb", model("username", username, "tweets", tweets));
     }
 

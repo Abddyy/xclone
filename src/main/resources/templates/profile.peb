@@ -11,8 +11,8 @@
             <h2>Your Tweets</h2>
             <div class="tweets-list">
                 {% for tweet in tweets %}
-                    <div class="tweet">
-                        <p><strong>Content:</strong> {{ tweet.content }}</p>
+                    <div class="list-group-item">
+                        <p><strong></strong> {{ tweet.content }}</p>
                         <p><strong>Posted at:</strong> {{ tweet.formattedTimestamp }}</p>
                         {% if tweet.location %}
                             <p><strong>Location:</strong> {{ tweet.location }}</p>
