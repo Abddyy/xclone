@@ -6,5 +6,29 @@
     <div class="container">
         <h1>Profile Page</h1>
         <p>This is a basic profile page for hello {{ username }}.</p>
+
+        {% if tweets is not empty%}
+            <h2>Your Tweets</h2>
+            <div class="tweets-list">
+                {% for tweet in tweets %}
+                    <div class="tweet">
+                        <p><strong>Content:</strong> {{ tweet.content }}</p>
+                        <p><strong>Posted at:</strong> {{ tweet.formattedTimestamp }}</p>
+                        {% if tweet.location %}
+                            <p><strong>Location:</strong> {{ tweet.location }}</p>
+                        {% endif %}
+                        {% if tweet.media %}
+                            <p><strong>Media:</strong> <img src="{{ tweet.media }}" alt="Tweet Media" style="max-width: 100%; height: auto;"></p>
+                        {% endif %}
+                        {% if tweet.replyToTweetId %}
+                            <p><strong>Replying to ID:</strong> {{ tweet.replyToTweetId }}</p>
+                        {% endif %}
+                        <p><strong>Likes:</strong> {{ tweet.likeCount }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You have not posted any tweets yet.</p>
+        {% endif %}
     </div>
 {% endblock %}

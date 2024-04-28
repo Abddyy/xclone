@@ -9,6 +9,10 @@ public class SqlRepo {
                     "GROUP BY t.tweet_id, u.username " +
                     "ORDER BY t.timestamp DESC";
 
+    private String tweet_profile_query=
+            "SELECT t.*, u.username FROM \"xcloneSchema\".\"tweet\" t " +
+                    "JOIN \"xcloneSchema\".\"user\" u ON t.user_id = u.user_id " +
+                    "WHERE u.username = :username ORDER BY t.timestamp DESC";
     private String user_id_query =
             "SELECT user_id FROM \"xcloneSchema\".\"user\" " +
                     "WHERE email = :email";
@@ -42,9 +46,11 @@ public class SqlRepo {
     private String get_new_user_info =
             "INSERT INTO \"xcloneSchema\".\"user\" (email, password, username) VALUES (:email, :password, :username)";
 
-    // Getter methods for the SQL query strings
     public String getTweetContentQuery() {
         return tweet_content_query;
+    }
+    public String getTweetProfileQuery() {
+        return tweet_profile_query;
     }
 
     public String getUserIdQuery() {
@@ -79,7 +85,7 @@ public class SqlRepo {
         return check_signup;
     }
 
-    public String getGetNewUserInfo() {
+    public String getNewUserInfo() {
         return get_new_user_info;
     }
 }

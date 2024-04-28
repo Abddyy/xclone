@@ -46,7 +46,7 @@ public class TweetServices {
     }
 
     public boolean isLiked(Handle handle,Integer tweetId,Integer userId){
-        return handle.createQuery(sql_repo.getAddLikeQuery())
+        return handle.createQuery(sql_repo.getLikeCountQuery())
                 .bind("tweetId", tweetId)
                 .bind("userId", userId)
                 .mapTo(Integer.class)

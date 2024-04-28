@@ -30,7 +30,7 @@ public class AuthentcationServices {
     }
 
     public void doSignupQuery(Handle handle,String email,String hashedPassword,String username){
-        handle.createUpdate(sqlRepo.getGetUserInfo())
+        handle.createUpdate(sqlRepo.getNewUserInfo())
                 .bind("email", email)
                 .bind("password", hashedPassword)
                 .bind("username", username)
