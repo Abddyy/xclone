@@ -167,7 +167,7 @@ XClone Timeline
     {% block body %}
 <div class="sidebar">
     <div>
-    <a href="#home">Home</a>
+    <a href="/app/homepage">Home</a>
     <a href="#explore">Explore</a>
     <a href="#notifications">Notifications</a>
     <a href="#messages">Messages</a>
@@ -234,6 +234,11 @@ XClone Timeline
 function openModal() {
     document.getElementById('postModal').style.display = 'flex';
     clearModalForm();
+}
+
+function redirectHome(event) {
+    event.preventDefault(); // Prevent the default anchor behavior
+    window.location.href = '/app/homepage'; // Redirect to the homepage.peb
 }
 
 function closeModal() {
