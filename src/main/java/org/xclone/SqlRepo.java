@@ -21,6 +21,9 @@ public class SqlRepo {
             "SELECT user_id FROM \"xcloneSchema\".\"user\" " +
                     "WHERE email = :email";
 
+    private String get_all_users_query =
+            "SELECT username FROM \"xcloneSchema\".\"user\" ";
+
     private String new_tweet_query =
             "INSERT INTO \"xcloneSchema\".\"tweet\" " +
                     "(user_id, content, timestamp, location, media, in_reply_to_tweet_id) " +
@@ -55,6 +58,10 @@ public class SqlRepo {
     }
     public String getTweetProfileQuery() {
         return tweet_profile_query;
+    }
+
+    public String getAllUsernameQuery() {
+        return get_all_users_query;
     }
 
     public String getUserIdQuery() {

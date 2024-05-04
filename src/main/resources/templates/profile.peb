@@ -167,7 +167,7 @@
     <div class="sidebar">
         <div>
             <a href="/app/homepage">Home</a>
-            <a href="#explore">Explore</a>
+            <a href="/app/explore">Explore</a>
             <a href="#notifications">Notifications</a>
             <a href="#messages">Messages</a>
             <a href="#lists">Lists</a>

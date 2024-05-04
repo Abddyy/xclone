@@ -7,6 +7,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.xclone.controllers.AuthenticationController;
 import org.xclone.controllers.ProfileController;
 import org.xclone.controllers.TweetController;
+import org.xclone.controllers.UserController;
 
 public class RouteConfig {
     public static void setupRoutes(Javalin app) {
@@ -17,6 +18,7 @@ public class RouteConfig {
         AuthenticationController authenticationController = new AuthenticationController(jdbi);
         TweetController tweetController = new TweetController(jdbi);
         ProfileController profileController=new ProfileController(jdbi);
+        UserController userController = new UserController(jdbi);
         app.get("/", ctx -> ctx.render("templates/main.peb"));
 
         app.get("/login", authenticationController::renderLogin);
@@ -28,6 +30,7 @@ public class RouteConfig {
         app.get("/profile", profileController::handleProfile);
 
         app.get("/app/homepage", tweetController::renderHomepage);
+        app.get("/app/explore", userController::renderExplore);
         app.post("/app/post", tweetController::handlePostCreate);
         app.post("/app/like", tweetController::handleLikeAction);
 

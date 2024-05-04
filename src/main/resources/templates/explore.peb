@@ -1,0 +1,15 @@
+{% extends "templates/base.peb" %}
+{% block body %}
+    <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+    {% for user in users %}
+        <div class="card" style="width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{ user.username }}</h5>
+            </div>
+        </div>
+    {% endfor  %}
+{% endblock %}
+
