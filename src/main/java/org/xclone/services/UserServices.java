@@ -11,6 +11,7 @@ public class UserServices {
         return jdbi.withHandle(handle ->
                 handle.createQuery(sql_repo.getAllUsernameQuery())
                         .map((rs, mapCtx) -> new User(
+                                rs.getString("email"),
                                 rs.getString("username")
                         ))
                         .list()

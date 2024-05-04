@@ -3,8 +3,18 @@ package org.xclone;
 public class User {
 
     private String username;
+    private String email;
 
-    public User(String username) {
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public User(String email, String username) {
+        this.email = email;
         this.username = username;
     }
 

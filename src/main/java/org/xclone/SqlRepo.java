@@ -22,7 +22,7 @@ public class SqlRepo {
                     "WHERE email = :email";
 
     private String get_all_users_query =
-            "SELECT username FROM \"xcloneSchema\".\"user\" ";
+            "SELECT email,username FROM \"xcloneSchema\".\"user\" ";
 
     private String new_tweet_query =
             "INSERT INTO \"xcloneSchema\".\"tweet\" " +
