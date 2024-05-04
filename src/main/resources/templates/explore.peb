@@ -1,164 +1,168 @@
 {% extends "templates/base.peb" %}
 
-        {% block styles %}
-            <style>
-                /* Existing styles */
-                .tweet-media {
-                    max-height: 300px;
-                    overflow: hidden;
-                }
-                .tweet-media img {
-                    width: 100%;
-                    object-fit: cover;
-                }
-                .sidebar {
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between; /* This separates the top content and the logout link */
-                    height: 100%;
-                    width: 250px;
-                    position: fixed;
-                    z-index: 1;
-                    top: 0;
-                    left: 0;
-                    background-color: #343a40;
-                    overflow-x: hidden;
-                    padding-top: 20px;
-                    transition: 0.3s;
-                }
+{% block title %}
+    XClone Explore
+{% endblock %}
 
-                .sidebar a {
-                    padding: 10px 15px;
-                    text-decoration: none;
-                    font-size: 18px;
-                    color: #dddddd;
-                    display: block;
-                }
-                .sidebar a:hover {
-                    color: #ffffff;
-                    background-color: #666;
-                }
-                .content {
-                    margin-left: 250px;
-                    padding: 20px;
-                    width: calc(100% - 250px);
-                }
-                .btn-post {
-                    width: 80%; /* Adjusted width */
-                    margin-top: 10px;
-                    background-color: #007bff;
-                    color: white;
-                    display: block;
-                    margin-left: auto;
-                    margin-right: auto;
+{% block styles %}
+    <style>
+        /* Existing styles */
+        .tweet-media {
+            max-height: 300px;
+            overflow: hidden;
+        }
+        .tweet-media img {
+            width: 100%;
+            object-fit: cover;
+        }
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* This separates the top content and the logout link */
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #343a40;
+            overflow-x: hidden;
+            padding-top: 20px;
+            transition: 0.3s;
+        }
 
-                }
-                .list-group-item {
-                    background-color: #f8f9fa;
-                    margin-top: 8px;
-                    border-radius: 10px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-                }
-                @media (max-width: 768px) {
-                    .sidebar {
-                        width: 100%;
-                        height: auto;
-                        position: relative;
-                    }
-                    .content {
-                        margin-left: 0;
-                        width: 100%;
-                    }
-                }
-                /* Modal styles */
-                .modal {
-                    display: none; /* Hidden by default */
-                    position: fixed;
-                    z-index: 2;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0,0,0,0.75);
-                    justify-content: center;
-                    align-items: center;
-                }
-                .modal-content {
-                    background-color: #333;
-                    color: #ddd;
-                    padding: 20px;
-                    border-radius: 10px;
-                    width: 30%;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    position: relative; /* Set position to relative */
-                }
-                .close-modal {
-                    cursor: pointer;
-                    position: absolute;
-                    right: 20px;
-                    top: 10px;
-                    font-size: 24px;
-                    color: #ddd;
-                }
-                .username-display {
-                    color: #ddd;  /* Light grey color to match the sidebar links */
-                    margin-top: 10px;
-                    text-align: center;
-                    width: 100%;
-                }
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #dddddd;
+            display: block;
+        }
+        .sidebar a:hover {
+            color: #ffffff;
+            background-color: #666;
+        }
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+            width: calc(100% - 250px);
+        }
+        .btn-post {
+            width: 80%; /* Adjusted width */
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
 
-                /* Additional styles for inputs and textarea to match the dark theme */
-                .modal input,
-                .modal textarea {
-                    min-height: 50px;
-                    background-color: #222;
-                    border: 1px solid #444;
-                    color: #ddd;
-                    margin-bottom: 10px;
-                    padding: 10px;
-                    width: calc(100% - 20px);
-                    border-radius: 4px;
-                    resize: none; /* Prevent the user from resizing the textarea */
-                }
-                /* Style adjustments for the placeholder text */
-                .modal input::placeholder,
-                .modal textarea::placeholder {
-                    color: #555;
-                    opacity: 1;
-                }
-                /* Styling the 'Post' button inside the modal */
-                .modal .btn-post {
-                    padding: 10px 20px;
-                    border-radius: 4px;
-                    margin-top: 10px;
-                    width: auto; /* Allow the button to size to its content */
-                    margin-left: auto; /* Align the button to the right */
-                }
-                /* Ensuring the modal content uses flex */
-                .modal-content {
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                }
-                /* Auto-expanding textarea */
-                .modal textarea {
-                    overflow-y: hidden; /* Hide the vertical scrollbar */
-                }
-                .logout-link {
-                    background-color: #ff6666;   /* Lighter red background */
-                    color: white;                /* White text color */
-                    padding: 10px 15px;          /* Padding for size */
-                    border-radius: 5px;          /* Rounded corners */
-                    display: block;              /* Make it a block to fill the sidebar */
-                    margin-top: 50px;            /* Larger space from the above element */
-                    text-align: center;          /* Center the text */
-                    text-decoration: none;       /* Remove underline from link */
-                }
-                .logout-link:hover {
-                    background-color: #c94c4c;   /* Mix of gray and red on hover */
-                }
-            </style>
-        {% endblock %}
+        }
+        .list-group-item {
+            background-color: #f8f9fa;
+            margin-top: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+            .content {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 2;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.75);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #333;
+            color: #ddd;
+            padding: 20px;
+            border-radius: 10px;
+            width: 30%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative; /* Set position to relative */
+        }
+        .close-modal {
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 24px;
+            color: #ddd;
+        }
+        .username-display {
+            color: #ddd;  /* Light grey color to match the sidebar links */
+            margin-top: 10px;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* Additional styles for inputs and textarea to match the dark theme */
+        .modal input,
+        .modal textarea {
+            min-height: 50px;
+            background-color: #222;
+            border: 1px solid #444;
+            color: #ddd;
+            margin-bottom: 10px;
+            padding: 10px;
+            width: calc(100% - 20px);
+            border-radius: 4px;
+            resize: none; /* Prevent the user from resizing the textarea */
+        }
+        /* Style adjustments for the placeholder text */
+        .modal input::placeholder,
+        .modal textarea::placeholder {
+            color: #555;
+            opacity: 1;
+        }
+        /* Styling the 'Post' button inside the modal */
+        .modal .btn-post {
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 10px;
+            width: auto; /* Allow the button to size to its content */
+            margin-left: auto; /* Align the button to the right */
+        }
+        /* Ensuring the modal content uses flex */
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        /* Auto-expanding textarea */
+        .modal textarea {
+            overflow-y: hidden; /* Hide the vertical scrollbar */
+        }
+        .logout-link {
+            background-color: #ff6666;   /* Lighter red background */
+            color: white;                /* White text color */
+            padding: 10px 15px;          /* Padding for size */
+            border-radius: 5px;          /* Rounded corners */
+            display: block;              /* Make it a block to fill the sidebar */
+            margin-top: 50px;            /* Larger space from the above element */
+            text-align: center;          /* Center the text */
+            text-decoration: none;       /* Remove underline from link */
+        }
+        .logout-link:hover {
+            background-color: #c94c4c;   /* Mix of gray and red on hover */
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
     <div class="sidebar">
@@ -174,23 +178,57 @@
         </div>
         <a href="/logout" class="logout-link">Logout</a>
     </div>
+    <div class="container content">
+        <h1>Explore Users</h1>
+        <form class="d-flex">
+            <input class="form-control me-2" type="search" placeholder="Search by username" aria-label="Search" id="searchInput">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+        <div class="mt-3" id="userList">
+            <!-- User list will be rendered here -->
 
-<div class="container content">
-    <form class="d-flex">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
 
-    {% for user in users %}
-        <div class="card" style="width: 18rem;">
-            <div class="card-body">
-                <h5 class="card-title">{{ user.username }}</h5>
-                <p> {{ user.email }}</p>
-            </div>
         </div>
-    {% endfor  %}
-</div>
-
-
+    </div>
 {% endblock %}
 
+{% block scripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#searchInput').on('input', function() {
+                var query = $(this).val().trim();
+                if (query.length > 0) {
+                    fetchUsers(query);
+                } else {
+                    $('#userList').empty(); // Clear the user list if the search input is empty
+                }
+            });
+
+            function fetchUsers(query) {
+                $.ajax({
+                    url: '/app/users/search?q=' + query,
+                    method: 'GET',
+                    success: function(response) {
+                        renderUserList(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching users:', error);
+                    }
+                });
+            }
+
+            function renderUserList(users) {
+                var userListHTML = '';
+                users.forEach(function(user) {
+                    userListHTML += '<div class="card mb-3">';
+                    userListHTML += '<div class="card-body">';
+                    userListHTML += '<h5 class="card-title">' + user.username + '</h5>';
+                    // Add more user details if needed
+                    userListHTML += '</div></div>';
+                });
+                $('#userList').html(userListHTML);
+            }
+        });
+    </script>
+{% endblock %}

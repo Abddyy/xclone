@@ -24,6 +24,9 @@ public class SqlRepo {
     private String get_all_users_query =
             "SELECT email,username FROM \"xcloneSchema\".\"user\" ";
 
+    private String get_user_search_query =
+            "SELECT email,username FROM \"xcloneSchema\".\"user\" WHERE username LIKE :query";
+
     private String new_tweet_query =
             "INSERT INTO \"xcloneSchema\".\"tweet\" " +
                     "(user_id, content, timestamp, location, media, in_reply_to_tweet_id) " +
@@ -66,6 +69,9 @@ public class SqlRepo {
 
     public String getUserIdQuery() {
         return user_id_query;
+    }
+    public String getUserSearchQuery() {
+        return get_user_search_query;
     }
 
     public String getNewTweetQuery() {

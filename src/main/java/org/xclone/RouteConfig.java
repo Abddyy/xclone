@@ -31,6 +31,7 @@ public class RouteConfig {
 
         app.get("/app/homepage", tweetController::renderHomepage);
         app.get("/app/explore", userController::renderExplore);
+        app.get("/app/users/search", userController::searchUsers);
         app.post("/app/post", tweetController::handlePostCreate);
         app.post("/app/like", tweetController::handleLikeAction);
 

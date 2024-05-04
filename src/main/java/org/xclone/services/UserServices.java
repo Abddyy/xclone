@@ -17,4 +17,16 @@ public class UserServices {
                         .list()
         );
     }
+    public List<User> searchUsers(Jdbi jdbi, String query) {
+        String likeQuery = "%" + query + "%"; // Add wildcard characters to allow partial matches
+        return jdbi.withHandle(handle ->
+                handle.createQuery(sql_repo.getUserSearchQuery())
+                        .bind("query", likeQuery)
+                        .map((rs, mapCtx) -> new User(
+                                rs.getString("email"),
+                                rs.getString("username")
+                        ))
+                        .list()
+        );
+    }
 }

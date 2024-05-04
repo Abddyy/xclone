@@ -20,5 +20,10 @@ public class UserController {
         String username = ctx.sessionAttribute("username");
         ctx.render("templates/explore.peb", model("users", users, "username", username));
     }
+    public void searchUsers(Context ctx) {
+        String query = ctx.queryParam("q");
+        List<User> searchedUsers = userServices.searchUsers(jdbi, query);
+        ctx.json(searchedUsers);
+    }
 
 }
