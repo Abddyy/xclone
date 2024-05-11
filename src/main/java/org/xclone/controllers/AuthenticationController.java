@@ -58,6 +58,8 @@ public class AuthenticationController {
                 ctx.json(Map.of("success", false, "message", "Email already exists. Please use a different email."));
             } else {
                 authenticationServices.doSignupQuery(handle, email, hashedPassword, username);
+                ctx.sessionAttribute("email",email);
+                ctx.sessionAttribute("username", username);
                 ctx.json(Map.of("success", true, "redirect", "/app/homepage"));  // Ensure this URL is correct
             }
         });
