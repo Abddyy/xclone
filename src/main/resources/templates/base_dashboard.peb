@@ -168,10 +168,6 @@
         <div>
             <a href="/app/homepage">Home</a>
             <a href="/app/explore">Explore</a>
-            <a href="#notifications">Notifications</a>
-            <a href="#messages">Messages</a>
-            <a href="#lists">Lists</a>
-            <a href="#more">More</a>
             <button onclick="openModal()" class="btn btn-primary btn-lg btn-post">Post</button>
             <a href="/profile" class="username-display">{{ username }}</a>
         </div>

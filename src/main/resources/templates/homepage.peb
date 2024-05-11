@@ -15,7 +15,7 @@ XClone Timeline
         <div class="list-group-item">
             <div class="d-flex w-100 justify-content-between">
                 <div>
-                    <h5 class="mb-1">{{ tweet.username }}</h5>
+                    <a href="/profile/{{tweet.username}}" class="mb-1">{{ tweet.username }}</a>
                     <p>{{ tweet.content }}</p>
                 </div>
                 <small class="text-muted">{{ tweet.formattedTimestamp }}</small>

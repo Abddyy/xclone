@@ -18,11 +18,18 @@ public class ProfileController {
     public ProfileController(Jdbi jdbi) {
         this.jdbi = jdbi;
     }
+
     public void handleProfile(Context ctx){
 
         String username = ctx.sessionAttribute("username");
 
 
+        List<Tweet> tweets = jdbi.withHandle(handle -> tweetProfileServices.findTweetsByUsername(jdbi, username));
+        long likesCount = tweets.stream().mapToInt(tweet->tweet.getLikeCount()).count();
+        ctx.render("templates/profile.peb", model("username", username, "tweets", tweets));
+    }
+    public void handleOtherProfile(Context ctx){
+        String username = ctx.pathParam("username");
         List<Tweet> tweets = jdbi.withHandle(handle -> tweetProfileServices.findTweetsByUsername(jdbi, username));
         long likesCount = tweets.stream().mapToInt(tweet->tweet.getLikeCount()).count();
         ctx.render("templates/profile.peb", model("username", username, "tweets", tweets));

@@ -29,6 +29,10 @@ public class RouteConfig {
 
         app.get("/profile", profileController::handleProfile);
 
+
+        //other users profiles with url parameter username
+        app.get("/profile/{username}", profileController::handleOtherProfile);
+
         app.get("/app/homepage", tweetController::renderHomepage);
         app.get("/app/explore", userController::renderExplore);
         app.get("/app/users/search", userController::searchUsers);
