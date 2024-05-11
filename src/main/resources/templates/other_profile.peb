@@ -1,0 +1,35 @@
+{% extends "templates/base_dashboard.peb" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block dashboard_content %}
+
+
+        <h1>Profile Page</h1>
+        <p>This is a basic profile page for {{ other_username }}.</p>
+        {% if tweets is not empty %}
+
+        <h2>Your Tweets</h2>
+        <div class="tweets-list">
+            {% for tweet in tweets %}
+                <div class="list-group-item">
+                    <p>{{ tweet.content }}</p>
+                    <p><strong>Posted at:</strong> {{ tweet.formattedTimestamp }}</p>
+                    {% if tweet.location %}
+                        <p><strong>Location:</strong> {{ tweet.location }}</p>
+                    {% endif %}
+                    {% if tweet.media %}
+                        <p><strong>Media:</strong> <img src="{{ tweet.media }}" alt="Tweet Media"></p>
+                    {% endif %}
+                    {% if tweet.replyToTweetId %}
+                        <p><strong>Replying to ID:</strong> {{ tweet.replyToTweetId }}</p>
+                    {% endif %}
+                    <p><strong>Likes:</strong> {{ tweet.likeCount }}</p>
+                </div>
+            {% endfor %}
+            {% else %}
+                <p>You have not posted any tweets yet.</p>
+            {% endif %}
+        </div>
+
+{% endblock %}

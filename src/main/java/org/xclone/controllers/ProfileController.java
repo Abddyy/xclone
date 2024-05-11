@@ -29,10 +29,12 @@ public class ProfileController {
         ctx.render("templates/profile.peb", model("username", username, "tweets", tweets));
     }
     public void handleOtherProfile(Context ctx){
-        String username = ctx.pathParam("username");
-        List<Tweet> tweets = jdbi.withHandle(handle -> tweetProfileServices.findTweetsByUsername(jdbi, username));
+        String username = ctx.sessionAttribute("username");
+
+        String other_username = ctx.pathParam("other_username");
+        List<Tweet> tweets = jdbi.withHandle(handle -> tweetProfileServices.findTweetsByUsername(jdbi, other_username));
         long likesCount = tweets.stream().mapToInt(tweet->tweet.getLikeCount()).count();
-        ctx.render("templates/profile.peb", model("username", username, "tweets", tweets));
+        ctx.render("templates/other_profile.peb", model("username", username,"other_username",other_username, "tweets", tweets));
     }
 
 }
