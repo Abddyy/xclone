@@ -11,6 +11,7 @@ public class SqlRepo {
 
     private String tweet_profile_query=
             "SELECT t.tweet_id, t.content, t.timestamp AS tempTime, " +
+                    "u.username, t.timestamp , t.location, t.media , t.in_reply_to_tweet_id ," +
                     "(SELECT COUNT(*) FROM \"xcloneSchema\".\"like\" l WHERE l.tweet_id = t.tweet_id) AS like_count " +
                     "FROM \"xcloneSchema\".\"tweet\" t " +
                     "JOIN \"xcloneSchema\".\"user\" u ON t.user_id = u.user_id " +
