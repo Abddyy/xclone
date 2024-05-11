@@ -37,4 +37,5 @@ public class ProfileController {
         ctx.render("templates/other_profile.peb", model("username", username,"other_username",other_username, "tweets", tweets));
     }
 
+
 }

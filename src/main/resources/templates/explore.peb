@@ -51,7 +51,8 @@
                 users.forEach(function(user) {
                     userListHTML += '<div class="card mb-3">';
                     userListHTML += '<div class="card-body">';
-                    userListHTML += '<h5 class="card-title">' + user.username + '</h5>';
+                    userListHTML += '<a href="/profile/'+ user.username +'" class="card-title">' + user.username + '</a>';
+
                     // Add more user details if needed
                     userListHTML += '</div></div>';
                 });

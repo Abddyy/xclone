@@ -6,8 +6,8 @@
 - [x] Login/Sign up (in DB)
 - [x] News Feed(timeline based)
 - [x] Post a new Tweet
-- [ ] Search Users
-- [ ] See Specific User's profile and his tweets
+- [x] Search Users
+- [x] See Specific User's profile and his tweets
 - [x] Retweet(referencing)
 
 # Bonus points for
